@@ -3,7 +3,7 @@ package File::System;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # declaring avoids 'Name "File::System::prune" used only once: possible typo'
 our $prune;
@@ -76,6 +76,8 @@ The returned object will behave according to the documentation available in L<Fi
 =head1 TODO
 
 I would like to create a set of regular regression tests that can be applied to any module to prove its working order.
+
+The C<mkdir> and C<mkfile> methods are inconsistent with the rest of the API. I want to come up with a more general and consistent alternative.
 
 =head1 SEE ALSO
 
