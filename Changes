@@ -1,0 +1,5 @@
+1.01	2005-03-26 16:01	Andrew Sterling Hanenkamp <hanenkamp@users.sourceforge.net>
+
+	* README: Initial release.
+	* lib/File/System/Object.pm: Contains an alpha version of the API.
+	* lib/File/System/Real.pm: Initial implementation of a real FS.
