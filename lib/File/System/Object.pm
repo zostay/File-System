@@ -86,29 +86,36 @@ sub lookup {
 
 =item @objs = $obj->glob($glob)
 
-Find all files matching the given file globs C<$glob>. The glob should be a typical csh-style file glob---see L</"FILE SYSTEM PATHS"> below. Returns all matching objects.
+Find all files matching the given file globs C<$glob>. The glob should be a typical csh-style file glob---see L</"FILE SYSTEM PATHS"> below. Returns all matching objects. Note that globs are matched against '.' and '..', so care must be taken in crafting a glob that hopes to match files starting with '.'. (The typical solution to match all files starting with '.' is '.??*' under the assumption that one letter names are exceedingly rare and to be avoided, by the same logic.)
 
 B<Module Authors:> A generic and slow implementation is provided.
 
 =cut
 
 sub glob {
-	my $self = shift;
-	my $glob = shift;
+	my $self = shift->root;
+	my $glob = $self->canonify(shift);
 
 	my @components = split /\//, $glob;
+	shift @components;
 
-	my @in = $self->children;
-	my @out;
+	my @open_list = map { [ $_, $self->lookup($_) ] } $self->children_paths;
+	my @matches;
 
 	for my $component (@components) {
-		return () unless @in;
+		return () unless @open_list;
 
-		@out = $self->match_glob($component, @in);
-		@in = map { $self->is_container ? $self->children : () } @out;
+		@matches = 
+			grep { $self->match_glob($component, $_->[0]) } @open_list;
+
+		@open_list = 
+			map {
+			   my ($path, $obj) = @$_; 
+			   map { [ $_, $obj->lookup($_) ] } $obj->children 
+		   } @matches;
 	}
 
-	return @out;
+	return map { $_->[1] } @matches;
 }
 
 =item @files = $obj->find($want, @paths)

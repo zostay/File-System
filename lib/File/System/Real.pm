@@ -307,25 +307,28 @@ sub copy {
 	my $to    = shift;
 	my $force = shift || 0;
 
-	ref $to eq ref $self
-		or croak "The 'to' argument must refer to a '",ref $self,"' file system container.";
+	UNIVERSAL::isa($to, ref $self)
+		or croak "Copy failed; the '$to' object is not a '",ref $self,"'";
 
 	$to->{fs_root} eq $self->{fs_root}
-		or croak "The 'to' argument has a different file system root than that of this file, $self->{path}";
+		or croak "Copy failed; the '$to' object belongs to a different root.";
+
+	$to->is_valid
+		or croak "Copy failed; the '$to' object is not valid.";
 	
 	$to->is_container
-		or croak "The 'to' argument must be a directory, but '$to' is not.";
+		or croak "Copy failed; the '$to' object is not a directory.";
 
 	defined $to->child($self->basename)
-		and croak "Cannot copy $self to $to as $to/",$self->basename," already exists.";	
+		and croak "Copy failed; the '$to/",$self->basename,"' object already exists.";	
 
 	if ($self->is_container) {
 		if ($force) {
 			$to->mkdir($self->basename);
 			File::Copy::Recursive::dircopy($self->{fullpath}, $to->{fullpath}.'/'.$self->basename)
-				or croak "Failed to move' $self->{fullpath}' to '$to->{fullpath}'";
+				or croak "Copy failed; dircopy failure to '$to'";
 		} else {
-			croak "Cannot copy directory unless the 'force' argument is true.";
+			croak "Copy failed; cannot copy a directory unless the 'force' argument is true.";
 		}
 	} else {
 		File::Copy::copy($self->{fullpath}, $to->{fullpath});

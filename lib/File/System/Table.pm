@@ -108,7 +108,7 @@ sub new {
 
 	my $self = bless { cwd => '/' }, $class;
 
-	while (($mp, $fs) = splice @_, 0, 2) {
+	while (my ($mp, $fs) = splice @_, 0, 2) {
 		$self->mount($mp, $fs);
 	}
 
@@ -162,7 +162,7 @@ This method returns the file system that was mounted at the given path.
 
 sub unmount {
 	my $self = shift;
-	my $path = $self->canonify($path);
+	my $path = $self->canonify(shift);
 
 	$path eq '/'
 		and croak "The root mount point cannot be unmounted.";
@@ -258,35 +258,34 @@ sub lookup {
 #	# TODO Deep thoughts. How do I do this?
 #}
 
-sub _delegate_fs {
+my @delegates = qw/
+	is_valid           
+	properties         
+	settable_properties
+	get_property       
+	set_property       
+	remove             
+	has_content        
+	is_container       
+	is_readable        
+	is_seekable        
+	is_writable        
+	is_appendable      
+	open               
+	content            
+	has_children       
+	children_paths     
+/;
+
+for my $name (@delegates) {
+	eval q(
+sub ).$name.q( {
 	my $self     = shift;
-	my @caller   = caller 0;
-	my ($method) = $caller[3] =~ /(\w+)$/;
-
-	no strict 'refs';
-	return $self->{cwd_fs}->$method->(@_);
+	return $self->{cwd_fs}->).$name.q((@_);
 }
-
-*is_valid            = \&_delegate_fs;
-*properties          = \&_delegate_fs;
-*settable_properties = \&_delegate_fs;
-*get_property        = \&_delegate_fs;
-*set_property        = \&_delegate_fs;
-*remove              = \&_delegate_fs;
-*has_content         = \&_delegate_fs;
-*is_container        = \&_delegate_fs;
-*is_readable         = \&_delegate_fs;
-*is_seekable         = \&_delegate_fs;
-*is_writable         = \&_delegate_fs;
-*is_appendable       = \&_delegate_fs;
-*open                = \&_delegate_fs;
-*content             = \&_delegate_fs;
-*has_children        = \&_delegate_fs;
-*children_paths      = \&_delegate_fs;
-*children            = \&_delegate_fs;
-*child               = \&_delegate_fs;
-*mkdir               = \&_delegate_fs;
-*mkfile              = \&_delegate_fs;
+);
+	die $@ if $@;
+}
 
 sub rename {
 	my $self = shift;
@@ -295,6 +294,8 @@ sub rename {
 	$self->{cwd_fs}->rename($name);
 	
 	$self->{cwd} =~ s#[^/]+$ #$name#x;
+
+	return $self;
 }
 
 sub move {
@@ -302,23 +303,85 @@ sub move {
 	my $path  = shift;
 	my $force = shift;
 
-	$self->{cwd_fs}->move($path, $force);
+	UNIVERSAL::isa($path, 'File::System::Table')
+		or croak "Move failed; the '$path' object is not a 'File::System::Table'";
+
+	$self->{cwd_fs}->move($path->{cwd_fs}, $force);
 
 	substr $self->{cwd}, 0, length($self->basename), $path;
+
+	return $self;
 }
 
 sub copy {
 	my $self  = shift;
 	my $path  = shift;
 	my $force = shift;
+	
+	UNIVERSAL::isa($path, 'File::System::Table')
+		or croak "Copy failed; the '$path' object is not a 'File::System::Table'";
 
-	my $copy = $self->{cwd_fs}->move($path, $force);
+	my $copy = $self->{cwd_fs}->copy($path->{cwd_fs}, $force);
 	my $copy_cwd = $self->{cwd};
 	substr $copy_cwd, 0, length($self->basename), $path;
 
 	return bless {
 		cwd_fs => $copy,
 		cwd    => $copy_cwd,
+		mounts => $self->{mounts},
+	}, ref $self;
+}
+	
+sub children {
+	my $self = shift;
+	my @children = $self->{cwd_fs}->children;
+	my @tab_children = map { 
+		bless { 
+			cwd    => $self->{cwd}.'/'.$_->basename,
+			cwd_fs => $_,
+			mounts => $self->{mounts},
+		}, ref $self } @children;
+	return @tab_children;
+}
+
+sub child {
+	my $self = shift;
+	my $name = shift;
+	my $child = $self->{cwd_fs}->child($name);
+	
+	return undef unless defined $child;
+
+	return bless {
+		cwd    => $self->{cwd}.'/'.$name,
+		cwd_fs => $child,
+		mounts => $self->{mounts},
+	}, ref $self;
+}
+
+sub mkdir {
+	my $self = shift;
+	my $path = $self->canonify($_[0]);
+	my ($fs, $rel_path) = $self->_resolve_fs(shift);
+
+	my $dir = $fs->mkdir($rel_path);
+
+	return bless {
+		cwd    => $path,
+		cwd_fs => $dir,
+		mounts => $self->{mounts},
+	}, ref $self;
+}
+	
+sub mkfile {
+	my $self = shift;
+	my $path = $self->canonify($_[0]);
+	my ($fs, $rel_path) = $self->_resolve_fs(shift);
+
+	my $dir = $fs->mkfile($rel_path);
+
+	return bless {
+		cwd    => $path,
+		cwd_fs => $dir,
 		mounts => $self->{mounts},
 	}, ref $self;
 }
