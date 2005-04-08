@@ -1,3 +1,24 @@
+1.02	2005-04-08 08:46	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Test.pm: Finished the initial version of the test suite.
+	* t/03_real.t: Altered this test to use the new test suite.
+	* lib/File/System/Object.pm: Added a new requirement for module authors that
+	  the exists method should fallback to $self->path if none given. Added the
+	  necessary to the exists method to do that.
+	* lib/File/System/Real.pm: Altered exists for new requirement.
+	* lib/File/System/Object.pm: The canonify method complains if it is given
+	  undef for a path.
+	* lib/File/System.pm: The factory method croaks better error messages.
+
+1.02	2005-04-06 20:57	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Object.pm: Removed documentation for mkdir/mkfile API.
+	  We'll just pretend they don't exist for now. :)
+	* lib/File/System/Real.pm: Added documentation for the special methods,
+	  mkdir and mkfile.
+    * lib/File/System/Test.pm: Added a special test suite to help validate the
+      creation of new file system drivers.
+
 1.02    2005-03-28 07:47	Andrew Sterling Hanenkamp
 
 	* lib/File/System.pm: Added comment about mkfile and mkdir API issue.

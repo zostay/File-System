@@ -5,6 +5,8 @@ use warnings;
 
 our $VERSION = '1.02';
 
+use Carp;
+
 # declaring avoids 'Name "File::System::prune" used only once: possible typo'
 our $prune;
 
@@ -66,7 +68,13 @@ sub new {
 	eval "use $fs";
 	warn "Failed to load FS package, $fs: $@" if $@;
 
-	return $fs->new(@_);
+	my $result = eval { $fs->new(@_) };
+	if ($@) {
+		$@ =~ s/ at .*$//s;
+		croak $@ if $@;
+	}
+
+	return $result;
 }
 
 =back

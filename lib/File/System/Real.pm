@@ -70,7 +70,7 @@ sub root {
 
 sub exists {
 	my $self = shift;
-	my $path = shift;
+	my $path = shift || $self->path;
 
 	return -e $self->canonify_real($path);
 }
@@ -464,6 +464,18 @@ sub child {
 	}
 }
 
+=head2 SPECIAL METHODS
+
+This file system driver provides a couple extra methods:
+
+=over
+
+=item $dir = $obj-E<gt>mkdir($path)
+
+Create the directory for the given path (and any intermediate directories). This returns the file system object representing directory created.
+
+=cut
+
 sub mkdir {
 	my $self = shift;
 	my $path = shift;
@@ -482,6 +494,14 @@ sub mkdir {
 		fullpath => $fullpath,
 	}, ref $self;
 }
+
+=item $file = $obj-E<gt>mkfile($path)
+
+Creates a file (and any required parent directories) for the given C<$path>. Returns the file system object for the create file.
+
+=back
+
+=cut
 
 sub mkfile {
 	my $self = shift;

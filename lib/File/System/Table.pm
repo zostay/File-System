@@ -6,6 +6,7 @@ use warnings;
 use base 'File::System::Object';
 
 use Carp;
+use File::Basename;
 use File::System;
 
 =head1 NAME
@@ -177,13 +178,13 @@ sub unmount {
 	delete $self->{mounts}{$path};
 }
 
-=item @paths = $fs-E<gt>mount_table
+=item @paths = $fs-E<gt>mounts
 
 Returns the list of all paths that have been mounted to.
 
 =cut
 
-sub mount_table {
+sub mounts {
 	my $self = shift;
 	return keys %{ $self->{mounts} };
 }
@@ -243,9 +244,13 @@ sub lookup {
 	my $cwd         = $self->canonify($_[0]);
 	my ($fs, $path) = $self->_resolve_fs(shift);
 
+	my $cwd_fs = $fs->lookup($path);
+
+	return undef unless defined $cwd_fs;
+
 	return bless {
 		cwd    => $cwd,
-		cwd_fs => $fs->lookup($path),
+		cwd_fs => $cwd_fs,
 		mounts => $self->{mounts},
 	}, ref $self;
 }
@@ -262,7 +267,6 @@ my @delegates = qw/
 	is_valid           
 	properties         
 	settable_properties
-	get_property       
 	set_property       
 	remove             
 	has_content        
@@ -287,9 +291,32 @@ sub ).$name.q( {
 	die $@ if $@;
 }
 
+sub get_property {
+	my $self = shift;
+	local $_ = shift;
+
+	SWITCH: {
+		/^path$/ && do {
+			return $self->{cwd};
+		};
+		/^dirname$/ && do {
+			return File::Basename::dirname($self->{cwd});
+		};
+		/^basename$/ && do {
+			return File::Basename::basename($self->{cwd});
+		};
+		DEFAULT: {
+			return $self->{cwd_fs}->get_property($_);
+		}
+	}
+}
+
 sub rename {
 	my $self = shift;
 	my $name = shift;
+
+	grep { $self->{cwd} eq $_ } keys %{ $self->{mounts} }
+		and croak "Cannot rename the mount point '$self'";
 
 	$self->{cwd_fs}->rename($name);
 	
@@ -307,8 +334,7 @@ sub move {
 		or croak "Move failed; the '$path' object is not a 'File::System::Table'";
 
 	$self->{cwd_fs}->move($path->{cwd_fs}, $force);
-
-	substr $self->{cwd}, 0, length($self->basename), $path;
+	$self->{cwd} = $self->canonify($path->path.'/'.$self->basename);
 
 	return $self;
 }
@@ -322,8 +348,7 @@ sub copy {
 		or croak "Copy failed; the '$path' object is not a 'File::System::Table'";
 
 	my $copy = $self->{cwd_fs}->copy($path->{cwd_fs}, $force);
-	my $copy_cwd = $self->{cwd};
-	substr $copy_cwd, 0, length($self->basename), $path;
+	my $copy_cwd = $self->canonify($path->path.'/'.$self->basename);
 
 	return bless {
 		cwd_fs => $copy,
@@ -334,28 +359,22 @@ sub copy {
 	
 sub children {
 	my $self = shift;
-	my @children = $self->{cwd_fs}->children;
-	my @tab_children = map { 
-		bless { 
-			cwd    => $self->{cwd}.'/'.$_->basename,
-			cwd_fs => $_,
-			mounts => $self->{mounts},
-		}, ref $self } @children;
-	return @tab_children;
+	return
+		map { $self->lookup($_) }
+		grep !/^\.\.?$/, $self->{cwd_fs}->children_paths;
 }
 
 sub child {
 	my $self = shift;
 	my $name = shift;
-	my $child = $self->{cwd_fs}->child($name);
-	
-	return undef unless defined $child;
 
-	return bless {
-		cwd    => $self->{cwd}.'/'.$name,
-		cwd_fs => $child,
-		mounts => $self->{mounts},
-	}, ref $self;
+	$self->is_container
+		or croak "The child method called on non-container.";
+
+	$name !~ /\//
+		or croak "Argument to child must not be a path.";
+
+	return $self->lookup($name);
 }
 
 sub mkdir {

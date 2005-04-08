@@ -5,6 +5,7 @@ use warnings;
 
 our $VERSION = '1.01';
 
+use Carp;
 use Parse::RecDescent;
 
 =head1 NAME
@@ -43,7 +44,7 @@ B<Module Authors:> You must implement this object.
 
 =item $test = $obj-E<gt>exists($path)
 
-Check the given path C<$path> and determine whether a file system object exists at that path. Return a true value if there is such an object or false otherwise.
+Check the given path C<$path> and determine whether a file system object exists at that path. Return a true value if there is such an object or false otherwise. If C<$path> is undefined, the method should assume C<$obj-E<gt>path>.
 
 B<Module Authors:> A default (albeit I<very slow>) implementation is provided of this method.
 
@@ -51,7 +52,7 @@ B<Module Authors:> A default (albeit I<very slow>) implementation is provided of
 
 sub exists {
 	my $self = shift;
-	my $path = shift;
+	my $path = shift || $self->path;
 
 	return defined $self->lookup($path);
 }
@@ -399,18 +400,6 @@ Returns the child C<File::System::Object> that matches the given C<$name> or C<u
 
 B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
 
-=item $child = $obj-E<gt>mkdir($path)
-
-Creates a container at the the given path C<$path> relative to the current object C<$obj>. Returns the newly created child. If the given path C<$path> requires more than one container be created (i.e., one or more of the parents of the ultimate container doesn't exist), then the file object should create all the parent objects necessary as well. Only the ultimate container will be returned.
-
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
-
-=item $child = $obj-E<gt>mkfile($path)
-
-Creates a content file at the given path C<$path> relative to the current object C<$obj>. Returns the newly created child. If the given path C<$path> requires that parent containers of the content file be created (i.e., one or more of the parents of the ultimate file doesn't exist), then the object should create all the parent objects necessary as well. Only the ultimate content object will be returned.
-
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
-
 =back
 
 =head1 FILE SYSTEM PATHS
@@ -514,6 +503,9 @@ B<Module Authors:> Always, always, always use this method to clean up your paths
 sub canonify {
 	my $self = shift;
 	my $path = shift;
+
+	defined $path
+		or croak "canonify must be given a path";
 
 	# Skipped so we can still get some benefit in constructors
 	if (ref $self && $path !~ m#^/#) {
