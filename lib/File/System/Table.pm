@@ -124,7 +124,7 @@ Each entry is made of two elements, the path to mount to and then a reference to
 
 sub mount {
 	my $self = shift;
-	my $path = $self->canonify(shift);
+	my $path = $self->normalize_path(shift);
 	my $fs   = $self->_init_fs(shift);
 
 	if ($path eq '/') {
@@ -163,7 +163,7 @@ This method returns the file system that was mounted at the given path.
 
 sub unmount {
 	my $self = shift;
-	my $path = $self->canonify(shift);
+	my $path = $self->normalize_path(shift);
 
 	$path eq '/'
 		and croak "The root mount point cannot be unmounted.";
@@ -208,7 +208,7 @@ sub _init_fs {
 
 sub _resolve_fs {
 	my $self = shift;
-	my $path = $self->canonify(shift);
+	my $path = $self->normalize_path(shift);
 
 	# The mount point we want should be the longest one which matches our
 	# given path name.
@@ -241,7 +241,7 @@ sub exists {
 
 sub lookup {
 	my $self        = shift;
-	my $cwd         = $self->canonify($_[0]);
+	my $cwd         = $self->normalize_path($_[0]);
 	my ($fs, $path) = $self->_resolve_fs(shift);
 
 	my $cwd_fs = $fs->lookup($path);
@@ -334,7 +334,7 @@ sub move {
 		or croak "Move failed; the '$path' object is not a 'File::System::Table'";
 
 	$self->{cwd_fs}->move($path->{cwd_fs}, $force);
-	$self->{cwd} = $self->canonify($path->path.'/'.$self->basename);
+	$self->{cwd} = $self->normalize_path($path->path.'/'.$self->basename);
 
 	return $self;
 }
@@ -348,7 +348,7 @@ sub copy {
 		or croak "Copy failed; the '$path' object is not a 'File::System::Table'";
 
 	my $copy = $self->{cwd_fs}->copy($path->{cwd_fs}, $force);
-	my $copy_cwd = $self->canonify($path->path.'/'.$self->basename);
+	my $copy_cwd = $self->normalize_path($path->path.'/'.$self->basename);
 
 	return bless {
 		cwd_fs => $copy,
@@ -379,7 +379,7 @@ sub child {
 
 sub mkdir {
 	my $self = shift;
-	my $path = $self->canonify($_[0]);
+	my $path = $self->normalize_path($_[0]);
 	my ($fs, $rel_path) = $self->_resolve_fs(shift);
 
 	my $dir = $fs->mkdir($rel_path);
@@ -393,7 +393,7 @@ sub mkdir {
 	
 sub mkfile {
 	my $self = shift;
-	my $path = $self->canonify($_[0]);
+	my $path = $self->normalize_path($_[0]);
 	my ($fs, $rel_path) = $self->_resolve_fs(shift);
 
 	my $dir = $fs->mkfile($rel_path);

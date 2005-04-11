@@ -490,7 +490,7 @@ sub is_container_mobile {
 	# RENAME
 	my $basename = $obj->basename;
 	my $path = $obj->path;
-	my $renamed_path = $obj->canonify($obj->dirname.'/renamed_container');
+	my $renamed_path = $obj->normalize_path($obj->dirname.'/renamed_container');
 
 	my @files = $obj->find(sub { shift->path ne $obj->path });
 	my @renamed_files = 
@@ -524,7 +524,7 @@ sub is_container_mobile {
 
 	# MOVE
 	my $parent = $obj->parent;
-	my $new_path = $obj->canonify($dest->path."/$basename");
+	my $new_path = $obj->normalize_path($dest->path."/$basename");
 
 	my @new_files = 
 		map { my $p = $_->path; $p =~ s/^$obj/$new_path/; $p } @files;
@@ -602,7 +602,7 @@ sub is_content_mobile {
 	# RENAME
 	my $basename = $obj->basename;
 	my $path = $obj->path;
-	my $renamed_path = $obj->canonify($obj->dirname.'/renamed_content');
+	my $renamed_path = $obj->normalize_path($obj->dirname.'/renamed_content');
 
 	_check($obj->rename('renamed_content')->path eq $renamed_path, $name,
 		"renamed content path is '$obj' rather than '$renamed_path'") || return;
@@ -612,7 +612,7 @@ sub is_content_mobile {
 
 	# MOVE
 	my $parent = $obj->parent;
-	my $new_path = $obj->canonify($dest->path."/$basename");
+	my $new_path = $obj->normalize_path($dest->path."/$basename");
 
 	_check($obj->move($dest)->path eq $new_path, $name,
 		"moved content path is '$obj' rather than '$new_path'") || return;

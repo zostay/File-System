@@ -117,8 +117,8 @@ for my $cmd (@mounts) {
 	for my $path (@files) {
 		my ($mp) = 
 			sort { -(length($a) <=> length($b)) } 
-			grep { $root->canonify($path) =~ /^$_/ } $root->mounts;
-		my $real_path = $root->canonify($path);
+			grep { $root->normalize_path($path) =~ /^$_/ } $root->mounts;
+		my $real_path = $root->normalize_path($path);
 		$real_path =~ s[$mp][$mounts{$mp}/];
 		ok(-f $real_path);
 
@@ -135,8 +135,8 @@ for my $cmd (@mounts) {
 	for my $path (@dirs) {
 		my ($mp) = 
 			sort { -(length($a) <=> length($b)) } 
-			grep { $root->canonify($path) =~ /$_/ } $root->mounts;
-		my $real_path = $root->canonify($path);
+			grep { $root->normalize_path($path) =~ /$_/ } $root->mounts;
+		my $real_path = $root->normalize_path($path);
 		$real_path =~ s[$mp][$mounts{$mp}/];
 		ok(-d $real_path);
 		

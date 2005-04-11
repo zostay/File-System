@@ -40,7 +40,7 @@ sub new {
 
 	$args{root} ||= '.';
 	$args{root} = File::Spec->rel2abs($args{root});
-	$args{root} = $class->canonify($args{root});
+	$args{root} = $class->normalize_path($args{root});
 	my $root = File::Spec->canonpath($args{root});
 
 	-e $root or croak "Sorry, root $root does not exist!";
@@ -72,15 +72,15 @@ sub exists {
 	my $self = shift;
 	my $path = shift || $self->path;
 
-	return -e $self->canonify_real($path);
+	return -e $self->normalize_real_path($path);
 }
 
 sub lookup {
 	my $self = shift;
 	my $path = shift;
 
-	my $abspath = $self->canonify($path);
-	my $fullpath = $self->canonify_real($path);
+	my $abspath = $self->normalize_path($path);
+	my $fullpath = $self->normalize_real_path($path);
 
 	return undef
 		unless -e $fullpath;
@@ -96,16 +96,16 @@ sub glob {
 	my $self = shift;
 	my $glob = shift;
 
-	my $absglob = $self->canonify($glob);
+	my $absglob = $self->normalize_path($glob);
 
-	my $fullglob = $self->canonify_real($absglob);
+	my $fullglob = $self->normalize_real_path($absglob);
 
 	return map {
 		s/^$self->{fs_root}//;
 		bless {
 			fs_root  => $self->{fs_root},
-			path     => $self->canonify($_),
-			fullpath => $self->canonify_real($_),
+			path     => $self->normalize_path($_),
+			fullpath => $self->normalize_real_path($_),
 		}, ref $self
 	} glob($fullglob);
 }
@@ -250,8 +250,8 @@ sub rename {
 	croak "The 'name' argument must be a plan name, not a path. However, the given value ($name) contains a slash."
 		if $name =~ m#/#;
 
-	my $abspath  = $self->canonify($self->dirname.'/'.$name);
-	my $fullpath = $self->canonify_real($self->dirname.'/'.$name);
+	my $abspath  = $self->normalize_path($self->dirname.'/'.$name);
+	my $fullpath = $self->normalize_real_path($self->dirname.'/'.$name);
 
 	rename $self->{fullpath}, $fullpath;
 
@@ -296,8 +296,8 @@ sub move {
 
 	my $name = $self->basename;
 
-	$self->{path}     = $self->canonify($to->path.'/'.$name);
-	$self->{fullpath} = $self->canonify_real($to->path.'/'.$name);
+	$self->{path}     = $self->normalize_path($to->path.'/'.$name);
+	$self->{fullpath} = $self->normalize_real_path($to->path.'/'.$name);
 
 	return $self;
 }
@@ -336,8 +336,8 @@ sub copy {
 
 	return bless {
 		fs_root  => $self->{fs_root},
-		path     => $self->canonify($to->path.'/'.$self->basename),
-		fullpath => $self->canonify_real($to->path.'/'.$self->basename),
+		path     => $self->normalize_path($to->path.'/'.$self->basename),
+		fullpath => $self->normalize_real_path($to->path.'/'.$self->basename),
 	}, ref $self;
 }
 
@@ -434,8 +434,8 @@ sub children {
 		} else {
 			bless {
 				fs_root  => $self->{fs_root},
-				path     => $self->canonify($_),
-				fullpath => $self->canonify_real($_),
+				path     => $self->normalize_path($_),
+				fullpath => $self->normalize_real_path($_),
 			}, ref $self;
 		}
 	} readdir DH;
@@ -450,8 +450,8 @@ sub child {
 
 	croak "Name given, '$name', is a path rather than a name (i.e., it contains a slash)." if $name =~ m#/#;
 
-	my $abspath  = $self->canonify($name);
-	my $fullpath = $self->canonify_real($name);
+	my $abspath  = $self->normalize_path($name);
+	my $fullpath = $self->normalize_real_path($name);
 
 	if (-e $fullpath) {
 		return bless {
@@ -480,8 +480,8 @@ sub mkdir {
 	my $self = shift;
 	my $path = shift;
 
-	my $abspath  = $self->canonify($path);
-	my $fullpath = $self->canonify_real($path);
+	my $abspath  = $self->normalize_path($path);
+	my $fullpath = $self->normalize_real_path($path);
 
 	File::Path::mkpath($fullpath, 0);
 
@@ -507,12 +507,12 @@ sub mkfile {
 	my $self = shift;
 	my $path = shift;
 
-	my $fulldir = $self->canonify_real(File::Basename::dirname($path));
+	my $fulldir = $self->normalize_real_path(File::Basename::dirname($path));
 
 	File::Path::mkpath($fulldir, 0);
 
-	my $abspath  = $self->canonify($path);
-	my $fullpath = $self->canonify_real($path);
+	my $abspath  = $self->normalize_path($path);
+	my $fullpath = $self->normalize_real_path($path);
 
 	my $fh = FileHandle->new(">$fullpath")
 		or croak "Cannot create file $abspath: $!";
@@ -525,17 +525,17 @@ sub mkfile {
 	}, ref $self;
 }
 
-# =item $real_path = $obj->canonify_real($messy_path)
+# =item $real_path = $obj->normalize_real_path($messy_path)
 #
-# Like C<canonify>, except that it returns a real absolute path.
+# Like C<normalize_path>, except that it returns a real absolute path.
 #
 # =cut
 
-sub canonify_real {
+sub normalize_real_path {
 	my $self = shift;
 	my $path = shift;
 
-	my $abspath  = $self->canonify($path);
+	my $abspath  = $self->normalize_path($path);
 	my $fullpath = File::Spec->canonpath(
 	   File::Spec->catfile($self->{fs_root}, $abspath)
 	);

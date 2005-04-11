@@ -69,7 +69,7 @@ sub lookup {
 	my $self = shift;
 	my $path = shift;
 
-	my $abspath = $self->canonify($path);
+	my $abspath = $self->normalize_path($path);
 
 	if ($self->is_root) {
 		my $result = $self;
@@ -95,7 +95,7 @@ B<Module Authors:> A generic and slow implementation is provided.
 
 sub glob {
 	my $self = shift->root;
-	my $glob = $self->canonify(shift);
+	my $glob = $self->normalize_path(shift);
 
 	my @components = split /\//, $glob;
 	shift @components;
@@ -472,7 +472,7 @@ This class also provides a few helpers that may be useful to module uathors, but
 
 =over
 
-=item $clean_path = $obj-E<gt>canonify($messy_path)
+=item $clean_path = $obj-E<gt>normalize_path($messy_path)
 
 This method creates a canonical path out of the given path C<$messy_path>. This is the single most important method offered to module authors. It provides several things:
 
@@ -500,12 +500,12 @@ B<Module Authors:> Always, always, always use this method to clean up your paths
 
 =cut
 
-sub canonify {
+sub normalize_path {
 	my $self = shift;
 	my $path = shift;
 
 	defined $path
-		or croak "canonify must be given a path";
+		or croak "normalize_path must be given a path";
 
 	# Skipped so we can still get some benefit in constructors
 	if (ref $self && $path !~ m#^/#) {
