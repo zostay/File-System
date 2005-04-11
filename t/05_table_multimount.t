@@ -4,14 +4,20 @@ use warnings;
 use File::Basename;
 use File::Path;
 use File::System::Test;
-use Test::More tests => 309;
+use Test::More tests => 308;
 
 BEGIN { use_ok('File::System') }
 
 -d 't/root' and rmtree('t/root', 1);
-mkpath('t/root', 1, 0700);
+mkpath('t/root/bar', 1, 0700);
 
-my $root = File::System->new('Table', '/' => [ 'Real', root => 't/root' ]);
+-d 't/root2' and rmtree('t/root2', 1);
+mkpath('t/root2', 1, 0700);
+
+my $root = File::System->new('Table', 
+	'/'    => [ 'Real', root => 't/root' ],
+	'/bar' => [ 'Real', root => 't/root2' ],
+);
 
 # Checking initial file system root
 is_root_sane($root);
@@ -63,26 +69,48 @@ for my $path (@dirs, @files) {
 }
 
 for my $path (@files) {
-	ok(-f "t/root/$path");
+	if ($path =~ /^bar\/(.*)$/) {
+		ok(-f "t/root2/$1");
+	} else {
+		ok(-f "t/root/$path");
+	}
 
 	my $obj = $root->lookup($path);
 
 	is_content_sane($obj);
 	is_content_writable($obj);
 	
-	my $dir = $root->mkdir('move_test');
+	my $dir;
+	if ($obj->path =~ /^\/bar\//) {
+		$dir = $root->mkdir('bar/move_test');
+	} else {
+		$dir = $root->mkdir('move_test');
+	}
+
 	is_content_mobile($obj, $dir);
 	$dir->remove('force');
 }
 
 for my $path (@dirs) {
-	ok(-d "t/root/$path");
+	if ($path =~ /^bar\/(.*)$/) {
+		ok(-d "t/root2/$1");
+	} else {
+		ok(-d "t/root/$path");
+	}
 	
 	my $obj = $root->lookup($path);
 
 	is_container_sane($obj);
 
-	my $dir = $root->mkdir('move_test');
+	next if $obj->path eq '/bar';
+
+	my $dir;
+	if ($obj->path =~ /^\/bar\//) {
+		$dir = $root->mkdir('bar/move_test');
+	} else {
+		$dir = $root->mkdir('move_test');
+	}
+
 	is_container_mobile($obj, $dir);
 	$dir->remove('force');
 }
@@ -90,3 +118,4 @@ for my $path (@dirs) {
 is_glob_and_find_consistent($root);
 
 rmtree('t/root', 1);
+rmtree('t/root2', 1);

@@ -235,7 +235,7 @@ sub root {
 
 sub exists {
 	my $self = shift;
-	my ($fs, $path) = $self->_resolve_fs(shift);
+	my ($fs, $path) = $self->_resolve_fs(shift || $self->path);
 	return $fs->exists($path);
 }
 

@@ -1,3 +1,11 @@
+1.02	2005-04-10 21:15	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Table: Altered the exists method to fit the new
+	  requirements.
+	* t/04_table_basic.t: Altered this test to use the new test suite.
+	* t/05_table_multimount.t: Altered this test to use the new test suite.
+	* t/06_table_mount.t: Altered this test to use the new test suite.
+
 1.02	2005-04-08 08:46	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Test.pm: Finished the initial version of the test suite.
