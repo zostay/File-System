@@ -1,3 +1,11 @@
+1.03	2005-04-16 13:27	Andrew Sterling Hanenkamp
+
+	* lib/File/System.pm: Fixed the POD abstract to meaningful for the whole
+	  File-System package.
+	* lib/File/System/Table.pm: Fixed a documentation bug that refered to
+	  mkfile() still and replaeced it with a reference to create().
+	* lib/File/System/Layered.pm: Created a shell with documentation only.
+
 1.02	2005-04-16 12:32	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Object.pm: Changed API again to add the create() method to

@@ -3,7 +3,7 @@ package File::System;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 use Carp;
 
@@ -12,7 +12,7 @@ our $prune;
 
 =head1 NAME
 
-File::System - Central factory for File::System modules
+File::System - A virtual file system written in pure Perl
 
 =head1 SYNOPSIS
 
@@ -23,7 +23,7 @@ File::System - Central factory for File::System modules
 
 =head1 DESCRIPTION
 
-B<Nota Bene:> This package is still in development, so some aspects of the API are likely to change.
+B<Important:> This package is still in development, so some aspects of the API are likely to change.
 
 The L<File::System> library is intended to provide an interface to a file system. Generally, a file system is a heirarchical arrangement of records commonly found on most modern computers. This library attempts to generalize this idea as it pertains to loading and accessing these files. This is not meant to generalize on the specifics of file system implementations or get into hardware details. 
 

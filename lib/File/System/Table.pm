@@ -23,7 +23,7 @@ File::System::Table - A file system implementation for mounting other modules
       '/bin' => [ 'Real', root => '/bin' ],
   );
 
-  my $file = $root->mkfile('/tmp/dude');
+  my $file = $root->create('/tmp/dude', 'f');
   my $fh = $file->open('w');
   print $fh "Party on! Excellent!\n";
   close $fh;
@@ -411,7 +411,7 @@ The C<glob> and C<find> methods rely upon the slowish defaults. This situation c
 
 =head1 SEE ALSO
 
-L<File::System>, L<File::System::Object>, L<File::System::Real>
+L<File::System>, L<File::System::Object>, L<File::System::Real>, L<File::System::Layered>
 
 =head1 AUTHOR
 
