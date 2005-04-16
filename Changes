@@ -1,3 +1,18 @@
+1.02	2005-04-16 12:32	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Object.pm: Changed API again to add the create() method to
+	  replace the old (and inconsistent) mkdir/mfile methods.
+	* lib/File/System/Object.pm: Added the is_creatable() method to the API.
+	* lib/File/System/Real.pm: Removed the "special" methods mkdir() and
+	  mkfile() and replaced them with create() and added is_creatable().
+	* lib/File/System/Table.pm: Removed the mkdir() and mkfile() methods and
+	  replaced them with create() and added is_creatable().
+	* t/03_real.t: Altered tests for API changes.
+	* t/04_table_basic.t: Altered tests for API changes.
+	* t/05_table_multimount.t: Altered tests for API changes.
+	* t/06_table_mount.t: Altered tests for API changes.
+	* lib/File/System.pm: Updated the documentation.
+
 1.02	2005-04-10 21:15	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Table: Altered the exists method to fit the new

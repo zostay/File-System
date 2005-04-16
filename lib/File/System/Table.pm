@@ -377,30 +377,28 @@ sub child {
 	return $self->lookup($name);
 }
 
-sub mkdir {
+sub is_createable {
 	my $self = shift;
 	my $path = $self->normalize_path($_[0]);
 	my ($fs, $rel_path) = $self->_resolve_fs(shift);
+	my $type = shift;
 
-	my $dir = $fs->mkdir($rel_path);
-
-	return bless {
-		cwd    => $path,
-		cwd_fs => $dir,
-		mounts => $self->{mounts},
-	}, ref $self;
+	return $fs->is_creatable($rel_path, $type);
 }
-	
-sub mkfile {
+
+sub create {
 	my $self = shift;
 	my $path = $self->normalize_path($_[0]);
 	my ($fs, $rel_path) = $self->_resolve_fs(shift);
+	my $type = shift;
 
-	my $dir = $fs->mkfile($rel_path);
+	my $obj = $fs->create($rel_path, $type);
+
+	return undef unless defined $obj;
 
 	return bless {
 		cwd    => $path,
-		cwd_fs => $dir,
+		cwd_fs => $obj,
 		mounts => $self->{mounts},
 	}, ref $self;
 }

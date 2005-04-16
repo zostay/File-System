@@ -81,11 +81,11 @@ sub new {
 
 The returned object will behave according to the documentation available in L<File::System::Object>.
 
-=head1 TODO
+=head1 BUGS
 
-I would like to create a set of regular regression tests that can be applied to any module to prove its working order.
+Lots of methods need to be added to the drivers. There are lots of questions that still need to be answerable. Such as, can a particular directory of a file system contain only certain kinds of files? The C<move>, C<copy>, and C<rename> methods should be optional and methods for checking if they are proper should exist. Anyway, lots more informational methods need to be added.
 
-The C<mkdir> and C<mkfile> methods are inconsistent with the rest of the API. I want to come up with a more general and consistent alternative.
+The API is not set in stone yet. I'm going to start using it directly in another project of mine soon, so it is becoming solid. However, some aspects might be tweaked still. Hopefully, I will only be adding, but that doesn't much help a potential module author. I will put a note into the documentation when the API is locked in place. After that, I will require major version changes to change the API.
 
 =head1 SEE ALSO
 

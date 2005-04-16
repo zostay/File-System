@@ -117,6 +117,7 @@ sub properties {
 		basename
 		dirname
 		path
+		object_type
 		dev
 		ino
 		mode
@@ -165,6 +166,12 @@ sub get_property {
 		};
 		/^path$/     && do {
 			return $self->{path};
+		};
+		/^object_type$/ && do {
+			my $result = '';
+			$result .= 'd' if -d $self->{fullpath};
+			$result .= 'f' if -f $self->{fullpath};
+			return $result;
 		};
 		/^dev$/      && do {
 			return $self->_stat->[0];
@@ -243,6 +250,58 @@ sub set_property {
 	}
 }
 
+sub is_creatable {
+	my $self = shift;
+	my $path = shift;
+	my $type = shift;
+
+	return ($type eq 'f' || $type eq 'd') && !$self->exists($path);
+}
+
+sub create {
+	my $self = shift;
+	my $path = shift;
+	my $type = shift;
+
+	defined $type
+		or croak "Missing required argument 'type'.";
+
+	if ($type eq 'f') {	
+		my $fulldir = $self->normalize_real_path(File::Basename::dirname($path));
+
+		File::Path::mkpath($fulldir, 0);
+
+		my $abspath  = $self->normalize_path($path);
+		my $fullpath = $self->normalize_real_path($path);
+
+		my $fh = FileHandle->new(">$fullpath")
+			or croak "Cannot create file $abspath: $!";
+		close $fh;
+
+		return bless {
+			fs_root  => $self->{fs_root},
+			path     => $abspath,
+			fullpath => $fullpath,
+		}, ref $self;
+	} elsif ($type eq 'd') {
+		my $abspath  = $self->normalize_path($path);
+		my $fullpath = $self->normalize_real_path($path);
+
+		File::Path::mkpath($fullpath, 0);
+
+		-d $fullpath
+			or croak "Failed to create directory '$abspath'";
+
+		return bless {
+			fs_root  => $self->{fs_root},
+			path     => $abspath,
+			fullpath => $fullpath,
+		}, ref $self;
+	} else {
+		return undef;
+	}
+}
+
 sub rename {
 	my $self = shift;
 	my $name = shift;
@@ -283,7 +342,7 @@ sub move {
 
 	if ($self->is_container) {
 		if ($force) {
-			$to->mkdir($self->basename);
+			$to->create($self->basename, 'd');
 			File::Copy::Recursive::dircopy($self->{fullpath}, $to->{fullpath}.'/'.$self->basename)
 				or croak "Move failed; dircopy failure to '$to'";
 			File::Path::rmtree($self->{fullpath});
@@ -319,12 +378,12 @@ sub copy {
 	$to->is_container
 		or croak "Copy failed; the '$to' object is not a directory.";
 
-	defined $to->child($self->basename)
+	defined $to->child($self->basename, 'd')
 		and croak "Copy failed; the '$to/",$self->basename,"' object already exists.";	
 
 	if ($self->is_container) {
 		if ($force) {
-			$to->mkdir($self->basename);
+			$to->create($self->basename, 'd');
 			File::Copy::Recursive::dircopy($self->{fullpath}, $to->{fullpath}.'/'.$self->basename)
 				or croak "Copy failed; dircopy failure to '$to'";
 		} else {
@@ -354,16 +413,6 @@ sub remove {
 	} else {
 		unlink $self->{fullpath};
 	}
-}
-
-sub has_content {
-	my $self = shift;
-	return -f $self->{fullpath};
-}
-
-sub is_container {
-	my $self = shift;
-	return -d $self->{fullpath};
 }
 
 sub is_readable {
@@ -462,67 +511,6 @@ sub child {
 	} else {
 		return undef;
 	}
-}
-
-=head2 SPECIAL METHODS
-
-This file system driver provides a couple extra methods:
-
-=over
-
-=item $dir = $obj-E<gt>mkdir($path)
-
-Create the directory for the given path (and any intermediate directories). This returns the file system object representing directory created.
-
-=cut
-
-sub mkdir {
-	my $self = shift;
-	my $path = shift;
-
-	my $abspath  = $self->normalize_path($path);
-	my $fullpath = $self->normalize_real_path($path);
-
-	File::Path::mkpath($fullpath, 0);
-
-	-d $fullpath
-		or croak "Failed to create directory '$abspath'";
-
-	return bless {
-		fs_root  => $self->{fs_root},
-		path     => $abspath,
-		fullpath => $fullpath,
-	}, ref $self;
-}
-
-=item $file = $obj-E<gt>mkfile($path)
-
-Creates a file (and any required parent directories) for the given C<$path>. Returns the file system object for the create file.
-
-=back
-
-=cut
-
-sub mkfile {
-	my $self = shift;
-	my $path = shift;
-
-	my $fulldir = $self->normalize_real_path(File::Basename::dirname($path));
-
-	File::Path::mkpath($fulldir, 0);
-
-	my $abspath  = $self->normalize_path($path);
-	my $fullpath = $self->normalize_real_path($path);
-
-	my $fh = FileHandle->new(">$fullpath")
-		or croak "Cannot create file $abspath: $!";
-	close $fh;
-
-	return bless {
-		fs_root  => $self->{fs_root},
-		path     => $abspath,
-		fullpath => $fullpath,
-	}, ref $self;
 }
 
 # =item $real_path = $obj->normalize_real_path($messy_path)

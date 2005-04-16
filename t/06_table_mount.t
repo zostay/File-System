@@ -77,13 +77,13 @@ for my $cmd (@mounts) {
 		is_deeply([ sort $root->mounts ], [ sort @expected_mounts ]);
 	}
 
-	# mkdir/mkfile
+	# create
 	for my $path (@dirs) {
-		ok(defined $root->mkdir($path));
+		ok(defined $root->create($path, 'd'));
 	}
 
 	for my $path (@files) {
-		ok(defined $root->mkfile($path));
+		ok(defined $root->create($path, 'f'));
 	}
 
 	for my $path (@dirs, @files) {
@@ -101,7 +101,7 @@ for my $cmd (@mounts) {
 		is_object_sane($obj);
 	 
 		# properties
-		is_deeply([ $obj->properties ], [ qw/ basename dirname path dev ino mode nlink uid gid rdev size atime mtime ctime blksize blocks / ]);
+		is_deeply([ $obj->properties ], [ qw/ basename dirname path object_type dev ino mode nlink uid gid rdev size atime mtime ctime blksize blocks / ]);
 		is_deeply([ $obj->settable_properties ], [ qw/ mode uid gid atime mtime / ]);
 	 
 		$obj->set_property('mode', 0700);
@@ -127,7 +127,7 @@ for my $cmd (@mounts) {
 		is_content_sane($obj);
 		is_content_writable($obj);
 
-		my $dir = $root->mkdir("$mp/move_test");
+		my $dir = $root->create("$mp/move_test", 'd');
 		is_content_mobile($obj, $dir);
 		$dir->remove('force');
 	}
@@ -146,7 +146,7 @@ for my $cmd (@mounts) {
 
 		next if $mp = $obj->path;
 		
-		my $dir = $root->mkdir("$mp/move_test");
+		my $dir = $root->create("$mp/move_test", 'd');
 		is_container_mobile($obj, $dir);
 		$dir->remove('force');
 	}

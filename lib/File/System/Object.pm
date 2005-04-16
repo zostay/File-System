@@ -30,7 +30,7 @@ Each file system object must specify a method stating whether it contains file c
 
 All file system objects allow for the lookup of other file system object by relative or absolute path names.
 
-=head2 LOOKUP METHODS
+=head2 PATH METHODS
 
 These methods provide the most generalized functionality provided by all objects. Each path specified to each of these must follow the rules given by the L</"FILE SYSTEM PATHS"> section and may either be relative or absolute. If absolute, the operation performed will be based around the file system root. If relative, the operation performed depends on whether the object is a container or not. If a container, paths are considered relative to I<this> object. If not a container, paths are considered relative to the I<parent> of the current object.
 
@@ -154,6 +154,33 @@ sub find {
 
 	return @found;
 }
+
+=item $test = $obj-E<gt>is_creatable($path, $type)
+
+Returns true if the user can use the C<create> method to create an object at
+C<$path>.
+
+B<Module Authors:> A definition of this method must be provided.
+
+=item $new_obj = $obj-E<gt>create($path, $type)
+
+Attempts to create the object at the given path, C<$path> with type C<$type>. Type is a string containing one or more case-sensitive characters describing the type. Here are the meanings of the possible characters:
+
+=over
+
+=item d
+
+Create a container (named "d" for "directory"). This can be used alone or with the "f" flag.
+
+=item f
+
+Create a content object (named "f" for "file"). This can be used alone or with the "d" flag.
+
+=back
+
+The C<is_creatable> method may be used first to determine if the operation is possible.
+
+B<Module Authors:> A definition of this method must be provided---even if it always fails.
 
 =back
 
@@ -304,17 +331,68 @@ The C<$force> option, when set to a true value, will remove containers and all t
 
 B<Module Authors:> A definition for this method must be given.
 
+=item $type = $obj-E<gt>object_type
+
+Synonym for:
+
+  $type = $obj->get_property("object_type");
+
+The value returned is a string containing an arbitrary number of characters describing the type of the file system object. The following are defined:
+
+=over
+
+=item d
+
+This object may contain other files.
+
+=item f
+
+This object may have content.
+
+=back
+
+B<Module Authors:> A definition for this method is provided.
+
+=cut
+
+sub object_type {
+	my $self = shift;
+	return $self->get_property('object_type');
+}
+
 =item $test = $obj-E<gt>has_content
 
 Returns a true value if the object contains file content. See L</"CONTENT METHODS"> for additional methods.
 
-B<Module Authors:> A definition for this method must be given.
+This is equivalent to:
+
+  $obj->object_type =~ /f/;
+
+B<Module Authors:> A definition for this method is provided.
+
+=cut
+
+sub has_content {
+	my $self = shift;
+	$self->object_type =~ /f/;
+}
 
 =item $test = $obj-E<gt>is_container
 
 Returns a true value if the object may container other objects. See L</"CONTAINER METHODS"> for additional methods.
 
-B<Module Authors:> A definition for this method must be given.
+This is equivalent to:
+
+  $obj->object_type =~ /d/;
+
+B<Module Authors:> A definition for this method is provided.
+
+=cut
+
+sub is_container {
+	my $self = shift;
+	$self->object_type =~ /d/;
+}
 
 =back
 
