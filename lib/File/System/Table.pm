@@ -9,6 +9,8 @@ use Carp;
 use File::Basename;
 use File::System;
 
+our $VERSION = '1.03';
+
 =head1 NAME
 
 File::System::Table - A file system implementation for mounting other modules

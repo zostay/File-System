@@ -3,7 +3,7 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.03';
 
 use Carp;
 use File::Basename ();

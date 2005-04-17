@@ -8,6 +8,8 @@ use base 'File::System::Object';
 use Carp;
 use File::System;
 
+our $VERSION = '1.03';
+
 =head1 NAME
 
 File::System::Layered - A file system implementation with "layered" roots
