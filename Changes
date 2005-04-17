@@ -1,3 +1,10 @@
+1.03	2005-04-16 23:17	Andrew Sterling Hanenkamp
+
+	* ilb/File/System/Real.pm: Added an error check to the is_creatable()
+	  method.
+	* lib/File/System/Layered.pm: Added the guts to File::System::Layered
+	* t/07_layered.t: Added tests for File::System::Layered
+
 1.03	2005-04-16 13:27	Andrew Sterling Hanenkamp
 
 	* lib/File/System.pm: Fixed the POD abstract to meaningful for the whole

@@ -202,7 +202,7 @@ sub _init_fs {
 	} elsif (ref $fs eq 'ARRAY') {
 		return File::System->new(@$fs);
 	} else {
-		croak "File system must be an array reference or an actual File::System::Object. '$fs' is neither of these. See documentation of File::System::Table for details.";
+		croak "File system must be an array reference or an actual File::System::Object. '$fs' is neither of these. See the documentation of File::System::Table for details.";
 	}
 }
 

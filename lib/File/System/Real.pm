@@ -255,6 +255,9 @@ sub is_creatable {
 	my $path = shift;
 	my $type = shift;
 
+	defined $type
+		or croak "No type argument given.";
+
 	return ($type eq 'f' || $type eq 'd') && !$self->exists($path);
 }
 
