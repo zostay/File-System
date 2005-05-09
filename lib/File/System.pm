@@ -3,7 +3,7 @@ package File::System;
 use strict;
 use warnings;
 
-our $VERSION = '1.05';
+our $VERSION = '1.07';
 
 use Carp;
 

@@ -3,7 +3,7 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 use Carp;
 use File::Basename ();
@@ -100,7 +100,7 @@ sub glob {
 
 	my $fullglob = $self->normalize_real_path($absglob);
 
-	return map {
+	return sort map {
 		s/^$self->{fs_root}//;
 		bless {
 			fs_root  => $self->{fs_root},

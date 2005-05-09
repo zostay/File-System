@@ -3,7 +3,7 @@ package File::System::Object;
 use strict;
 use warnings;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 use Carp;
 use Parse::RecDescent;
@@ -116,7 +116,7 @@ sub glob {
 		   } @matches;
 	}
 
-	return map { $_->[1] } @matches;
+	return sort map { $_->[1] } @matches;
 }
 
 =item @files = $obj->find($want, @paths)
@@ -152,7 +152,7 @@ sub find {
 			if !$File::System::prune && $file->is_container;
 	}
 
-	return @found;
+	return sort @found;
 }
 
 =item $test = $obj-E<gt>is_creatable($path, $type)
