@@ -1,3 +1,13 @@
+1.07	2005-05-08 21:38	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Object.pm: Results of glob() and find() sorted.
+	* lib/File/System/Real.pm: Results of glob() sorted.
+
+1.06	2005-04-30 17:25	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Object.pm: Improved the "ne", "eq", and "cmp" operators
+	  through the use of some extra (and currently undocumented) methods.
+
 1.05	2005-04-28 10:36	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Passthrough.pm: Added a passthrough driver that doesn't do

@@ -198,9 +198,42 @@ The stringify operator is overloaded so that if this value is treated as a strin
 
 use overload 
 	'""'  => sub { shift->path },
-	'eq'  => sub { shift->path eq shift },
-	'ne'  => sub { shift->path ne shift },
-	'cmp' => sub { shift->path cmp shift };
+	'eq'  => \&equals,
+	'ne'  => \&not_equals,
+	'cmp' => \&compare;
+
+sub equals {
+	my $self = shift;
+	my $obj  = shift;
+
+	if (UNIVERSAL::isa($obj, 'File::System::Object')) {
+		return $self->path eq $obj->path;
+	} else {
+		return $self->path eq $obj;
+	}
+}
+
+sub not_equals {
+	my $self = shift;
+	my $obj  = shift;
+
+	if (UNIVERSAL::isa($obj, 'File::System::Object')) {
+		return $self->path ne $obj->path;
+	} else {
+		return $self->path ne $obj;
+	}
+}
+
+sub compare {
+	my $self = shift;
+	my $obj  = shift;
+
+	if (UNIVERSAL::isa($obj, 'File::System::Object')) {
+		return $self->path cmp $obj->path;
+	} else {
+		return $self->path cmp $obj;
+	}
+}
 
 =item $name = $obj-E<gt>is_valid
 
