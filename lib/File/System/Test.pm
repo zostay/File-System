@@ -3,7 +3,7 @@ package File::System::Test;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 require Exporter;
 use File::Basename ();
@@ -637,6 +637,11 @@ sub is_content_mobile {
 
 Checks several different glob patterns on the object to see if the glob patterns find the same set of objects that a similar find operation returns. The object passed can be a root object or any other object in the tree.
 
+This method also tests to see that the various different ways of calling C<glob> and C<find> are self-consistent. That is,
+
+  $obj->find(\&test) === $root->find(\&test, $obj)
+  $obj->glob($test)  === $root->glob("$obj/$test")
+
 =cut
 
 sub is_glob_and_find_consistent {
@@ -657,17 +662,32 @@ sub is_glob_and_find_consistent {
 								&& $_[0]->path !~ /\/\./ } ],
 	);
 
+	my $root = $obj->root;
 	for my $test (@tests) {
 		my @glob = $obj->glob($test->[0]);
 		my @find = $obj->find($test->[1]);
 
+		my @root_glob = $root->glob("$obj/$test->[0]");
+		my @root_find = $root->find($test->[1], $obj);
+
 		my $glob_err = join ', ', @glob;
 		my $find_err = join ', ', @find;
 
+		my $root_glob_err = join ', ', @root_glob;
+		my $root_find_err = join ', ', @root_find;
+
 		_check(@glob eq @find, $name, "for '$test->[0]', glob returned [ $glob_err ] but find returned [ $find_err ]") || return;
+
+		_check(@glob eq @root_glob, $name, "for '$test->[0]', obj glob returned [ $glob_err ] but root glob returned [ $root_glob_err ]") || return;
+
+		_check(@find eq @root_find, $name, "for '$test->[0]', obj find returned [ $find_err ] but root find returned [ $root_find_err ]") || return;
 
 		for (my $i = 0; $i < @glob; ++$i) {
 			_check($glob[$i] eq $find[$i], $name, "element $i of glob was '$glob[$i]', but element $i of find was '$find[$i]'") || return;
+
+			_check($glob[$i] eq $root_glob[$i], $name, "element $i of obj glob was '$glob[$i]', but element $i of root glob was '$root_glob[$i]'") || return;
+
+			_check($find[$i] eq $root_find[$i], $name, "element $i of obj find was '$find[$i]', but element $i of root find was '$root_find[$i]'") || return;
 		}
 	}
 

@@ -1,3 +1,18 @@
+1.09	2005-05-18 08:50	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Layered.pm: Fixed a find() bug that caused it to fail to
+	  ever return when a path was passed (instead of using $self).
+	* lib/File/System/Object.pm: Fixed a find() bug that caused it to fail to
+	  return anything when a path was passed (instead of using $self).
+	* lib/File/System/Test.pm: Created additional tests within
+	  is_glob_and_find_consistent() to check that find() properly handles passed
+	  paths and that glob() works the same from the root as from a local object.
+
+1.08	2005-05-08 21:39	Andrew Sterling Hanenkamp
+
+	* lib/File/System.pm: This is repository fix because of a missed commit from
+	  1.06.
+
 1.07	2005-05-08 21:38	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Object.pm: Results of glob() and find() sorted.

@@ -3,7 +3,7 @@ package File::System::Object;
 use strict;
 use warnings;
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 use Carp;
 use Parse::RecDescent;
@@ -137,7 +137,7 @@ sub find {
 	my $self = shift;
 	my $want = shift;
 
-	my @dirs = @_ || ($self);
+	my @dirs = @_ ? @_ : ($self);
 
 	my @open = map { $_ = $self->lookup($_) unless ref $_; $_ } @dirs;
 
