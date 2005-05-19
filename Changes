@@ -1,3 +1,8 @@
+1.11	2005-05-19 09:37	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Layered.pm: Fixed find(), which was returning strange
+	  results in some of the layers did not contain an entry for a directory.
+
 1.10	2005-05-18 20:53	Andrew Sterling Hanenkamp
 
 	* t/03_real.t, t/04_table_basic.t, t/05_table_multimount.t,

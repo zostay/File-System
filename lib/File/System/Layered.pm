@@ -8,7 +8,7 @@ use base 'File::System::Object';
 use Carp;
 use File::System;
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 =head1 NAME
 
@@ -165,10 +165,16 @@ sub find {
 	my $self = shift;
 	my $want = shift;
 
+	if (@_) {
+		@_ = map { $self->normalize_path("$_") } @_;
+	} else {
+		@_ = ("$self");
+	}
+
 	my %results;
 	for my $layer (reverse @{ $self->{layers} }) {
-		my @matches = $layer->find($want, 
-			grep { defined $_ } map { $layer->lookup($_->path) } @_);
+		my @matches = $layer->find($want, @_);
+
 		for my $match (@matches) {
 			$results{$match->path} = $match;
 		}
