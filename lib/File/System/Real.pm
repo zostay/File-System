@@ -3,12 +3,13 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 use Carp;
 use File::Basename ();
 use File::Copy ();
 use File::Copy::Recursive;
+use File::Glob ();
 use File::Path ();
 use File::Spec;
 use FileHandle;
@@ -107,7 +108,7 @@ sub glob {
 			path     => $self->normalize_path($_),
 			fullpath => $self->normalize_real_path($_),
 		}, ref $self
-	} glob($fullglob);
+	} File::Glob::bsd_glob($fullglob);
 }
 
 sub properties { 

@@ -3,7 +3,7 @@ package File::System::Test;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 require Exporter;
 use File::Basename ();
@@ -649,17 +649,18 @@ sub is_glob_and_find_consistent {
 	my $name = shift;
 
 	my @tests = (
-		[ '*{ar,az}', sub { $_[0]->path !~ /\/\./ 
-								&& $_[0]->parent->is_root 
+		[ '*{ar,az}', sub { $_[0]->path !~ /\/\.[^\/]+$/ 
+								&& $_[0]->parent eq $obj
 								&& $_[0]->path =~ /ar$|az$/ } ],
-		[ '*',        sub { $_[0]->parent->is_root 
-								&& $_[0]->path !~ /\/\./
+		[ '*',        sub { $_[0]->parent eq $obj
+								&& $_[0]->path !~ /\/\.[^\/]+$/
 								&& $_[0]->path ne $obj->path } ],
-		[ '.??*',     sub { $_[0]->parent->is_root 
-								&& $_[0]->path =~ /\/\./ } ],
-		[ '*/*',      sub { $_[0]->path =~ /^\/.*?\//
-								&& $_[0]->path !~ /^\/.*?\/.*?\//
-								&& $_[0]->path !~ /\/\./ } ],
+		[ '.??*',     sub { $_[0]->parent eq $obj
+								&& $_[0]->path =~ /\/\.[^\/]+$/ } ],
+		[ '*/*',      sub { $_[0]->path =~ /^$obj\/?[^\/]+\//
+								&& $_[0]->path !~ /^$obj\/?[^\/]+\/[^\/]+\//
+								&& $_[0]->path !~ /\/\.[^\/]+$/
+						   		&& $_[0]->path !~ /\/\.[^\/]+\/[^\/]+$/ } ],
 	);
 
 	my $root = $obj->root;
@@ -676,18 +677,18 @@ sub is_glob_and_find_consistent {
 		my $root_glob_err = join ', ', @root_glob;
 		my $root_find_err = join ', ', @root_find;
 
-		_check(@glob eq @find, $name, "for '$test->[0]', glob returned [ $glob_err ] but find returned [ $find_err ]") || return;
+		_check(@glob eq @find, $name, "in '$obj' for '$test->[0]', glob returned [ $glob_err ] but find returned [ $find_err ]") || return;
 
-		_check(@glob eq @root_glob, $name, "for '$test->[0]', obj glob returned [ $glob_err ] but root glob returned [ $root_glob_err ]") || return;
+		_check(@glob eq @root_glob, $name, "in '$obj' for '$test->[0]', obj glob returned [ $glob_err ] but root glob returned [ $root_glob_err ]") || return;
 
-		_check(@find eq @root_find, $name, "for '$test->[0]', obj find returned [ $find_err ] but root find returned [ $root_find_err ]") || return;
+		_check(@find eq @root_find, $name, "in '$obj' for '$test->[0]', obj find returned [ $find_err ] but root find returned [ $root_find_err ]") || return;
 
 		for (my $i = 0; $i < @glob; ++$i) {
-			_check($glob[$i] eq $find[$i], $name, "element $i of glob was '$glob[$i]', but element $i of find was '$find[$i]'") || return;
+			_check($glob[$i] eq $find[$i], $name, "in '$obj' element $i of glob was '$glob[$i]', but element $i of find was '$find[$i]'") || return;
 
-			_check($glob[$i] eq $root_glob[$i], $name, "element $i of obj glob was '$glob[$i]', but element $i of root glob was '$root_glob[$i]'") || return;
+			_check($glob[$i] eq $root_glob[$i], $name, "in '$obj' element $i of obj glob was '$glob[$i]', but element $i of root glob was '$root_glob[$i]'") || return;
 
-			_check($find[$i] eq $root_find[$i], $name, "element $i of obj find was '$find[$i]', but element $i of root find was '$root_find[$i]'") || return;
+			_check($find[$i] eq $root_find[$i], $name, "in '$obj' element $i of obj find was '$find[$i]', but element $i of root find was '$root_find[$i]'") || return;
 		}
 	}
 

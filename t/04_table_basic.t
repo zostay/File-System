@@ -4,7 +4,7 @@ use warnings;
 use File::Basename;
 use File::Path;
 use File::System::Test;
-use Test::More tests => 309;
+use Test::More tests => 317;
 
 BEGIN { use_ok('File::System') }
 
@@ -88,5 +88,11 @@ for my $path (@dirs) {
 }
 
 is_glob_and_find_consistent($root);
+
+for my $path (@dirs) {
+	my $obj = $root->lookup($path);
+
+	is_glob_and_find_consistent($obj);
+}
 
 rmtree('t/root', 1);

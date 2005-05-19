@@ -3,7 +3,7 @@ package File::System::Object;
 use strict;
 use warnings;
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 use Carp;
 use Parse::RecDescent;
@@ -94,26 +94,27 @@ B<Module Authors:> A generic and slow implementation is provided.
 =cut
 
 sub glob {
-	my $self = shift->root;
+	my $self = shift; 
 	my $glob = $self->normalize_path(shift);
 
 	my @components = split /\//, $glob;
 	shift @components;
 
-	my @open_list = map { [ $_, $self->lookup($_) ] } $self->children_paths;
-	my @matches;
+	my @open_list;
+	my @matches = ([ $self->root->path, $self->root ]);
 
 	for my $component (@components) {
+		@open_list = 
+			map {
+			   my ($path, $obj) = @$_; 
+			   map { [ $_, $obj->lookup($_) ] } $obj->children_paths 
+			} @matches;
+
 		return () unless @open_list;
 
 		@matches = 
 			grep { $self->match_glob($component, $_->[0]) } @open_list;
 
-		@open_list = 
-			map {
-			   my ($path, $obj) = @$_; 
-			   map { [ $_, $obj->lookup($_) ] } $obj->children 
-		   } @matches;
 	}
 
 	return sort map { $_->[1] } @matches;
@@ -623,7 +624,7 @@ sub normalize_path {
 		# Relative to me (I am a container) or to parent (I am not a container)
 		$self->is_container
 			or $self = $self->parent;
-	
+
 		# Fix us up to an absolute path
 		$path = $self->path."/$path";
 	}
@@ -632,7 +633,7 @@ sub normalize_path {
 	my @components = split m#/+#, $path;
 	@components = ('', '') unless @components;
 	unshift @components, '' unless @components > 1;
-	
+
 	for (my $i = 1; $i < @components;) {
 		if ($components[$i] eq '.') {
 			splice @components, $i, 1;

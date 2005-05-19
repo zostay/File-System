@@ -1,3 +1,17 @@
+1.10	2005-05-18 20:53	Andrew Sterling Hanenkamp
+
+	* t/03_real.t, t/04_table_basic.t, t/05_table_multimount.t,
+	  t/06_table_mount.t, t/07_layered.t, t/08_passthrough.t: Added tests for
+	  find() and glob() for directories within the root.
+	* lib/File/System/Layered.pm: Fixed a bug that occurred when trying to glob
+	  a directory that existed in some, but not all roots.
+	* lib/File/System/Object.pm: Corrected the way that glob() works so that it
+	  actually works.
+	* lib/File/System/Test.pm: Corrected the test suite to allow for testing of
+	  glob() and find() not in the root.
+	* lib/File/System/Real.pm: Altered glob() to use File::Glob::bsd_glob()
+	  which doesn't split globs on whitespace.
+
 1.09	2005-05-18 08:50	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Layered.pm: Fixed a find() bug that caused it to fail to
