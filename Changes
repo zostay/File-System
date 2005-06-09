@@ -1,3 +1,11 @@
+1.12	2005-06-08 21:26	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Passthrough.pm: Updated the passthrough driver so that
+	  want subroutine passed to find() is passed objects of the same type as the
+	  current object, rather than objects of the wrapped type. This behavior is
+	  more consistent and allows a derivation to add new methods that the
+	  wrapped object may not have.
+
 1.11	2005-05-19 09:37	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Layered.pm: Fixed find(), which was returning strange

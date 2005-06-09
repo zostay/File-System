@@ -3,7 +3,7 @@ package File::System::Passthrough;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 use Carp;
 use base 'File::System::Object';
@@ -101,7 +101,6 @@ my @wrap_if_defined = qw/
 
 my @wrap_list = qw/
 	glob
-	find
 	children
 /;
 
@@ -166,6 +165,27 @@ sub $sub {
 EOF
 
 	die $@ if $@;
+}
+
+sub find {
+	my $self = shift;
+	my $want = shift;
+
+	my @args = (sub { 
+		my $file = shift;
+		return $want->(bless { fs => $file }, ref $self);
+	});
+
+	push @args, map { 
+		UNIVERSAL::isa($_, 'File::System::Passthrough') ?
+			$_->{fs} : $_
+	} @_;
+
+	return map {
+		bless {
+			fs => $_,
+		}, ref $self;
+	} $self->{fs}->find(@args);
 }
 
 =back
