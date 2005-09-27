@@ -10,6 +10,9 @@ my $build = Module::Build->new(
 		'File::Copy::Recursive' => '0.05',
 		'Parse::RecDescent'     => 1.94,
 	},
+	PL_files			=> {
+		'lib/File/System/Globber.PL' => 'lib/File/System/Globber.pm',
+	},
 );
 
 $build->create_build_script;

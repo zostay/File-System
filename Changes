@@ -1,3 +1,25 @@
+1.14	2005-09-26 21:05	Andrew Sterling Hanenkamp
+
+	* FIXED [cpan #14771] t/01_normalize_path.t, lib/File/System/Object.pm:
+	  Fixed a tiny off-by-one error that caused ".."'s to be mistreated by the
+	  normalize_path() method.
+	* FIXED [cpan #13514] lib/File/System/Object.pm, lib/File/System/Table.pm,
+	  lib/File/System/Test.pm, lib/File/System/Real.pm: Removed basename/dirname
+	  calculations using the Perl File::Basename package. There's some
+	  controversy about the correct way to do this and the docs already specify
+	  that we do things the way Unix likes too anyway. That'll keep things
+	  consistent. Thanks to Zev Benjamin for the heads up.
+
+1.13	2005-06-21 09:31	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Object.pm: Removed the Parse::RecDescent parser grammar
+	  that is used with the internal globber.
+	* lib/File/System/Globber.PL: At build time this script generates a file
+	  named lib/File/System/Globber.pm containing the precompiled parser
+	  grammar, which ought to save a fraction of a second that was spend parsing
+	  the grammar and then compiling the Perl generated. Now, it just needs to
+	  compile the generated Perl.
+
 1.12	2005-06-08 21:26	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Passthrough.pm: Updated the passthrough driver so that

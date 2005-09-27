@@ -3,7 +3,7 @@ package File::System::Test;
 use strict;
 use warnings;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 require Exporter;
 use File::Basename ();
@@ -133,11 +133,11 @@ sub is_root_sane {
 	_check($obj->path eq "$obj", $name,
 		"root object stringify was '$obj' instead of '",$obj->path,"'") || return;
 
-	_check($obj->basename eq '', $name,
-		"root object basename was '",$obj->basename,"' instead of ''") || return;
+	_check($obj->basename eq '/', $name,
+		"root object basename was '",$obj->basename,"' instead of '/'") || return;
 
 	_check($obj->dirname eq '/', $name,
-		"root object basename was '",$obj->dirname,"' instead of '/'") || return;
+		"root object dirname was '",$obj->dirname,"' instead of '/'") || return;
 
 	_check($obj->is_root, $name, 'root object is not reporting is_root') || return;
 

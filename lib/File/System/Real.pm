@@ -3,10 +3,9 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 use Carp;
-use File::Basename ();
 use File::Copy ();
 use File::Copy::Recursive;
 use File::Glob ();
@@ -160,10 +159,10 @@ sub get_property {
 
 	SWITCH: {
 		/^basename$/ && do {
-			return File::Basename::basename($self->{path});
+			return $self->basename_of_path($self->{path});
 		};
 		/^dirname$/  && do {
-			return File::Basename::dirname($self->{path});
+			return $self->dirname_of_path($self->{path});
 		};
 		/^path$/     && do {
 			return $self->{path};

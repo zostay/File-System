@@ -6,10 +6,9 @@ use warnings;
 use base 'File::System::Object';
 
 use Carp;
-use File::Basename;
 use File::System;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 =head1 NAME
 
@@ -302,10 +301,10 @@ sub get_property {
 			return $self->{cwd};
 		};
 		/^dirname$/ && do {
-			return File::Basename::dirname($self->{cwd});
+			return $self->dirname_of_path($self->{cwd});
 		};
 		/^basename$/ && do {
-			return File::Basename::basename($self->{cwd});
+			return $self->basename_of_path($self->{cwd});
 		};
 		DEFAULT: {
 			return $self->{cwd_fs}->get_property($_);
