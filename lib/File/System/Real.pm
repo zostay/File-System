@@ -3,7 +3,7 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.06';
+our $VERSION = '1.07';
 
 use Carp;
 use File::Copy ();
@@ -443,7 +443,8 @@ sub is_appendable {
 sub open {
 	my $self   = shift;
 	my $access = shift;
-	return FileHandle->new($self->{fullpath}, $access);
+	return FileHandle->new($self->{fullpath}, $access)
+		or croak "Cannot open $self with access mode '$access': $!";
 }
 
 sub content {
@@ -459,7 +460,8 @@ sub content {
 sub has_children {
 	my $self = shift;
 
-	opendir DH, $self->{fullpath};
+	opendir DH, $self->{fullpath}
+		or croak "Cannot open directory $self for listing: $!";
 	my @dirs = grep !/^\.\.?$/, readdir DH;
 	closedir DH;
 
@@ -469,7 +471,8 @@ sub has_children {
 sub children_paths {
 	my $self = shift;
 	
-	opendir DH, $self->{fullpath};
+	opendir DH, $self->{fullpath}
+		or croak "Cannot open directory $self for listing: $!";
 	my @paths = map { s/^$self->{fs_root}//; $_ } readdir DH;
 	closedir DH;
 
@@ -479,7 +482,8 @@ sub children_paths {
 sub children {
 	my $self = shift;
 
-	opendir DH, $self->{fullpath};
+	opendir DH, $self->{fullpath}
+		or croak "Cannot open directory $self for listing: $!";
 	my @children = map {
 		if (/^\.\.?$/) {
 			()

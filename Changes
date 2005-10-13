@@ -1,3 +1,8 @@
+1.15	2005-10-12 22:28	Andrew Sterling Hanenkamp
+
+	* lib/File/System/Real.pm: Added more croaking when open() and opendir()
+	  failures occur to make errors a little more explicit.
+
 1.14	2005-09-26 21:05	Andrew Sterling Hanenkamp
 
 	* FIXED [cpan #14771] t/01_normalize_path.t, lib/File/System/Object.pm:
