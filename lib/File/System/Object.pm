@@ -3,7 +3,7 @@ package File::System::Object;
 use strict;
 use warnings;
 
-our $VERSION = '1.08';
+our $VERSION = '1.15';
 
 use Carp;
 use File::System::Globber;
@@ -18,7 +18,7 @@ Before reading this documentation, you should see L<File::System>.
 
 File system modules extend this class to provide their functionality. A file system object represents a path in the file system and provides methods to locate other file system objects either relative to this object or from an absolute root.
 
-Throughout this documentation, there are additional notes for module authors. If you are not a module author (i.e., "I just want to use this thing!"), you may ignore these notes.
+If you wish to write your own file system module, see the documentation below for L</"MODULE AUTHORS">.
 
 =head2 FEATURES
 
@@ -40,13 +40,9 @@ These methods provide the most generalized functionality provided by all objects
 
 Return an object for the root file system.
 
-B<Module Authors:> You must implement this object.
-
 =item $test = $obj-E<gt>exists($path)
 
 Check the given path C<$path> and determine whether a file system object exists at that path. Return a true value if there is such an object or false otherwise. If C<$path> is undefined, the method should assume C<$obj-E<gt>path>.
-
-B<Module Authors:> A default (albeit I<very slow>) implementation is provided of this method.
 
 =cut
 
@@ -60,8 +56,6 @@ sub exists {
 =item $file = $obj-E<gt>lookup($path)
 
 Lookup the given path C<$path> and return a L<File::System::Object> reference for that path or C<undef>.
-
-B<Module Authors:> A default (albeit I<very slow>) implementation is provided of this method.
 
 =cut
 
@@ -89,8 +83,6 @@ sub lookup {
 
 Find all files matching the given file globs C<$glob>. The glob should be a typical csh-style file glob---see L</"FILE SYSTEM PATHS"> below. Returns all matching objects. Note that globs are matched against '.' and '..', so care must be taken in crafting a glob that hopes to match files starting with '.'. (The typical solution to match all files starting with '.' is '.??*' under the assumption that one letter names are exceedingly rare and to be avoided, by the same logic.)
 
-B<Module Authors:> A generic and slow implementation is provided.
-
 =cut
 
 sub glob {
@@ -108,7 +100,7 @@ sub glob {
 			map {
 			   my ($path, $obj) = @$_; 
 			   map { [ $_, $obj->lookup($_) ] } $obj->children_paths 
-			} @matches;
+			} grep { $_->[1]->is_container } @matches;
 
 		return () unless @open_list;
 
@@ -129,8 +121,6 @@ Find all files matching or within the given paths C<@paths> or any subdirectory 
 The C<$want> subroutine will be called once for every file found under the give paths. The C<$want> subroutine may expect a single argument, the L<File::System::Object> representing the given file. The C<$want> subroutine should return true to add the file to the returned list or false to leave the file out. The C<$want> subroutine may also set the value of C<$File::System::prune> to a true value in order to cause all contained child object to be skipped from search.
 
 The implementation should perform a depth first search so that children are checked immediately after their parent (unless the children are pruned, of course).
-
-B<Module Authors:> A default implementation of this method has been provided.
 
 =cut
 
@@ -161,8 +151,6 @@ sub find {
 Returns true if the user can use the C<create> method to create an object at
 C<$path>.
 
-B<Module Authors:> A definition of this method must be provided.
-
 =item $new_obj = $obj-E<gt>create($path, $type)
 
 Attempts to create the object at the given path, C<$path> with type C<$type>. Type is a string containing one or more case-sensitive characters describing the type. Here are the meanings of the possible characters:
@@ -180,8 +168,6 @@ Create a content object (named "f" for "file"). This can be used alone or with t
 =back
 
 The C<is_creatable> method may be used first to determine if the operation is possible.
-
-B<Module Authors:> A definition of this method must be provided---even if it always fails.
 
 =back
 
@@ -240,13 +226,9 @@ sub compare {
 
 This method returns whether or not the object is still valid (i.e., the object it refers to still exists).
 
-B<Module Authors:> An implementation of this method must be provided.
-
 =item $name = $obj-E<gt>basename
 
 This is the base name of the object (local name with the rest of the path stripped out). This value is also available as C<$obj-E<gt>get_property('basename')>. Note that the root object C<basename> should be C<'/'>. This fits better with unix, but actually differs from how Perl normally works.
-
-B<Module Authors:> An implementation of this method is provided.
 
 =cut
 
@@ -259,8 +241,6 @@ sub basename {
 
 This the absolute canonical path up to but not including the base name. If the object represents the root path of the file system (i.e., F<..> = F<.>), then it is possible that C<basename> = C<dirname> = C<path>. This value is also available as C<$obj-E<gt>get_property('dirname')>.
 
-B<Module Authors:> An implementation of this method is provided.
-
 =cut
 
 sub dirname {
@@ -272,8 +252,6 @@ sub dirname {
 
 This is the absolute canonical path to the object. This value is also available as C<$obj-E<gt>get_property('path')>.
 
-B<Module Authors:> An implementation of this method is provided.
-
 =cut
 
 sub path {
@@ -284,8 +262,6 @@ sub path {
 =item $test = $obj-E<gt>is_root
 
 Returns true if this file system object represents the file system root.
-
-B<Module Authors:> A default implementation is provided.
 
 =cut
 
@@ -306,8 +282,6 @@ of you can think of it as:
 
 This will return the file system object for the container. It will return itself if this is the root container.
 
-B<Module Authors:> A default implementation of this method is provided.
-
 =cut
 
 sub parent {
@@ -319,19 +293,15 @@ sub parent {
 
 Files may have an arbitrary set of properties associated with them. This method merely returns all the possible keys into the C<get_property> method.
 
-B<Module Authors:> A definition for this method must be given.
-
 =item @keys = $obj-E<gt>settable_properties
 
 The keys returned by this method should be a subset of the keys returned by C<properties>. These are the modules upon which it is legal to call the C<set_property> method.
-
-B<Module Authors:> A definition for this method must be given.
 
 =item $value = $obj-E<gt>get_property($key)
 
 Files may have an arbitrary set of properties associated with them. Many of the common accessors are just shortcuts to calling this method.
 
-B<Module Authors:> A definition for this method must be given. It should return values for at least the following keys:
+In every implementation it must return values for at least the following keys:
 
 =over
 
@@ -361,29 +331,21 @@ This sets the property given by C<$key> to the value in C<$value>. This should f
 
 Renames the name of the file to the new name. This method cannot be used to move the file to a different location. See C<move> for that.
 
-B<Module Authors:> A definition for this method must be given.
-
 =item $obj-E<gt>move($to, $force)
 
 Moves the file to the given path. After running, this object should refer to the file in it's new location. The C<$to> argument must be a reference to the file system container (from the same file system!) to move this object into.  This method must fail if C<$obj> is a container and C<$force> isn't given or is false.
 
 If you move a container using the C<$force> option, and you have references to files held within that container, all of those references are probably now invalid.
 
-B<Module Authors:> A definition for this method must be given.
-
 =item $copy = $obj-E<gt>copy($to, $force)
 
 Copies the file to the given path. This object should refer to the original. The object representing the copy is returned. The c<$to> argument must refer to a reference to a file system container (from the same file system!). This method must fail if C<$obj> is a container and C<$force> isn't given or is false.
-
-B<Module Authors:> A definition for this method must be given.
 
 =item $obj-E<gt>remove($force)
 
 Deletes the object from the file system entirely. In general, this means that the object is now completely invalid. 
 
 The C<$force> option, when set to a true value, will remove containers and all their children and children of children, etc.
-
-B<Module Authors:> A definition for this method must be given.
 
 =item $type = $obj-E<gt>object_type
 
@@ -405,8 +367,6 @@ This object may have content.
 
 =back
 
-B<Module Authors:> A definition for this method is provided.
-
 =cut
 
 sub object_type {
@@ -422,8 +382,6 @@ This is equivalent to:
 
   $obj->object_type =~ /f/;
 
-B<Module Authors:> A definition for this method is provided.
-
 =cut
 
 sub has_content {
@@ -438,8 +396,6 @@ Returns a true value if the object may container other objects. See L</"CONTAINE
 This is equivalent to:
 
   $obj->object_type =~ /d/;
-
-B<Module Authors:> A definition for this method is provided.
 
 =cut
 
@@ -460,13 +416,9 @@ These methods are provided if C<has_content> returns a true value.
 
 This returns a true value if the file data can be read from---this doesn't refer to file permissions, but to actual capabilities. Can someone read the file? This literally means, "Can the file be read as a stream?"
 
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
-
 =item $test = $obj-E<gt>is_seekable
 
 This returns a true value if the file data is available for random-access. This literally means, "Are the individual bytes of the file addressable?"
-
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
 
 =item $test = $obj-E<gt>is_writable
 
@@ -474,27 +426,19 @@ This returns a true value if the file data can be written to---this doesn't refe
 
 I<TODO Can this be inferred from C<is_seekable> and C<is_appendable>?>
 
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
-
 =item $test = $obj-E<gt>is_appendable
 
 This returns a true value if the file data be appended to. This literally means, "Can the file be written to as a stream?" 
 
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
-
 =item $fh = $obj-E<gt>open($access)
 
 Using the same permissions, C<$access>, as L<FileHandle>, this method returns a file handle or a false value on failure.
-
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
 
 =item $content = $obj-E<gt>content
 
 =item @lines = $obj-E<gt>content
 
 In scalar context, this method returns the whole file in a single scalar. In list context, this method returns the whole file as an array of lines (with the newline terminator defined for the current system left intact).
-
-B<Module Authors:> A definition for this method must be given if C<has_content> may return true.
 
 =back
 
@@ -508,13 +452,9 @@ These methods are provided if C<is_container> returns a true value.
 
 Returns true if this container has any child objects (i.e., any child objects in addition to the mandatory '.' and '..').
 
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
-
 =item @paths = $obj-E<gt>children_paths
 
 Returns the relative paths of all children of the given container. The first two paths should always be '.' and '..', respectively. These two paths should be present within anything that returns true for C<is_container>.
-
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
 
 =item @children = $obj-E<gt>children
 
@@ -524,13 +464,9 @@ Returns the child C<File::System::Object>s for all the actual children of this c
 
 Notice that the objects for '.' and '..' are I<not> returned.
 
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
-
 =item $child = $obj-E<gt>child($name)
 
 Returns the child C<File::System::Object> that matches the given C<$name> or C<undef>.
-
-B<Module Authors:> A definition for this method must be given if C<is_container> may return true.
 
 =back
 
@@ -588,17 +524,100 @@ The square brackets can be used to match any character within the given characte
 
 =back
 
-=head1 FILE SYSTEM MODULE AUTHORS
+=head1 MODULE AUTHORS
 
-If you want to write your own file system module, you will need to keep in mind a few things when implementing the various routines. File system module authors must implement at least two objects a L<File::System> module and a subclass of L<File::System::Object>. The former provides the doorway into the file system and the latter provides most of the actual functionality.
+If you wish to extend this interface to provide a new implementation, do so by creating a class that subclasses L<File::System::Object>. That class must then define several methods. In the process you may override any method of this object, but make sure it adheres to the interface described in the documentation.
 
-Every file system is comprised of records. In the typical modern file system, you will find at least two types of objects: files and directories. However, this is by no means the only kind of objects in a file system. There might also be links, devices, FIFOs, etc. Rather than try and anticipate all of the possible variations in file type, the basic idea has been reduced to a single object, L<File::System::Object>. Module authors should see the documentation there for additional details.
+  package My::File::Sytem::Implementation;
 
-The records of a file system are generally organized in a heirarchy. It is possible for this heirarchy to have a depth of 1 (i.e., it's flat). To keep everything standard, file paths are always separated by the forward slash ("/") and a lone slash indicates the "root". Some systems provide multiple roots (usually called "volumes"). If a file system module wishes to address this problem, it should do so by artificially establishing an ultimate root under which the volumes exist.
+  use strict;
+  use warnings;
 
-In the heirarchy, the root has a special feature such that it is it's own parent. Any attempt to load the parent of the root, must load the root again. It should not be an error and it should never be able to reach some other object above the root (such as might be the case if a file system represents a "chroot" environment). Any other implementation is incorrect.
+  use base qw( File::System::Object );
 
-=head2 METHODS FOR MODULE AUTHORS
+  # define your implementation...
+
+Below are lists of the methods you must or should define for your implementation. There is also a section below containing documentation for additional helper methods module authors should find useful, but general users probably won't.
+
+=head2 MUST DEFINE
+
+A subclass of L<File::System::Object> must define the following methods:
+
+=over
+
+=item root
+
+=item is_creatable
+
+=item create
+
+=item is_valid
+
+=item properties
+
+=item settable_properties
+
+=item get_property
+
+=item set_property
+
+=item rename
+
+=item move
+
+=item copy
+
+=item remove
+
+=back
+
+The following methods must be provided if your file system object implementation may return a true value for the C<has_content()> method.
+
+=over
+
+=item is_readable
+
+=item is_seekable
+
+=item is_writable
+
+=item is_appendable
+
+=item open
+
+=item content
+
+=back
+
+The following methods are container methods and must be defined if your file system object implementation may return true from the C<is_container()> method.
+
+=over
+
+=item has_children
+
+=item children_paths
+
+=item children
+
+=item child
+
+=back
+
+=head2 SHOULD DEFINE
+
+A subclass of L<File::System::Object> ought to consider defining better implementations of the following. Once all the methods above are defined correctly, these methods will work. However, they may not work efficiently.
+
+Any methods not listed here or in L</"MUST DEFINE"> have default implementations that are generally adequate. Also, the methods listed below in L</"HELPER METHODS"> probably shouldn't be overriden.
+
+=over
+
+=item exists
+
+=item glob
+
+=back
+
+=head2 HELPER METHODS
 
 This class also provides a few helpers that may be useful to module uathors, but probably not of much use to typical users.
 
@@ -628,7 +647,7 @@ Enforces the principle that '..' applied to the root returns the root. This prov
 
 =back
 
-B<Module Authors:> Always, always, always use this method to clean up your paths.
+Always, always, always use this method to clean up your paths.
 
 =cut
 

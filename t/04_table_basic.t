@@ -1,3 +1,5 @@
+# vim: set ft=perl :
+
 use strict;
 use warnings;
 

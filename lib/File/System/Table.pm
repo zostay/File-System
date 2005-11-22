@@ -8,7 +8,7 @@ use base 'File::System::Object';
 use Carp;
 use File::System;
 
-our $VERSION = '1.04';
+our $VERSION = '1.15';
 
 =head1 NAME
 
@@ -256,14 +256,6 @@ sub lookup {
 	}, ref $self;
 }
 
-#sub glob {
-#	# TODO Deep thoughts. How do I do this?
-#}
-#
-#sub find {
-#	# TODO Deep thoughts. How do I do this?
-#}
-
 my @delegates = qw/
 	is_valid           
 	properties         
@@ -283,10 +275,11 @@ my @delegates = qw/
 /;
 
 for my $name (@delegates) {
-	eval q(
-sub ).$name.q( {
-	my $self     = shift;
-	return $self->{cwd_fs}->).$name.q((@_);
+	eval qq(
+#line 287 "File::Sytem::Table ($name)"
+sub $name {
+	my \$self     = shift;
+	return \$self->{cwd_fs}->$name(\@_);
 }
 );
 	die $@ if $@;
@@ -408,15 +401,13 @@ sub create {
 
 The C<copy> and C<move> methods will fail if used between file systems. This can be remedied, but it will require some delicate planning that hasn't yet been done.
 
-The C<glob> and C<find> methods rely upon the slowish defaults. This situation could probably be improved with a little bit of effort.
-
 =head1 SEE ALSO
 
 L<File::System>, L<File::System::Object>, L<File::System::Real>, L<File::System::Layered>
 
 =head1 AUTHOR
 
-Andrew Sterling Hanenkamp, E<lt>hanenkamp@users.sourceforge.netE<gt>
+Andrew Sterling Hanenkamp, E<lt>hanenkamp@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

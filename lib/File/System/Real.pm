@@ -3,7 +3,7 @@ package File::System::Real;
 use strict;
 use warnings;
 
-our $VERSION = '1.07';
+our $VERSION = '1.15';
 
 use Carp;
 use File::Copy ();
@@ -270,7 +270,7 @@ sub create {
 		or croak "Missing required argument 'type'.";
 
 	if ($type eq 'f') {	
-		my $fulldir = $self->normalize_real_path(File::Basename::dirname($path));
+		my $fulldir = $self->dirname_of_path($self->normalize_real_path($path));
 
 		File::Path::mkpath($fulldir, 0);
 
@@ -470,7 +470,7 @@ sub has_children {
 
 sub children_paths {
 	my $self = shift;
-	
+
 	opendir DH, $self->{fullpath}
 		or croak "Cannot open directory $self for listing: $!";
 	my @paths = map { s/^$self->{fs_root}//; $_ } readdir DH;
