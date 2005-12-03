@@ -3,7 +3,7 @@ package File::System::Object;
 use strict;
 use warnings;
 
-our $VERSION = '1.15';
+our $VERSION = '1.16';
 
 use Carp;
 use File::System::Globber;
@@ -106,7 +106,6 @@ sub glob {
 
 		@matches = 
 			grep { $self->match_glob($component, $_->[0]) } @open_list;
-
 	}
 
 	return sort map { $_->[1] } @matches;
@@ -386,7 +385,7 @@ This is equivalent to:
 
 sub has_content {
 	my $self = shift;
-	$self->object_type =~ /f/;
+	return scalar $self->object_type =~ /f/;
 }
 
 =item $test = $obj-E<gt>is_container
@@ -401,7 +400,7 @@ This is equivalent to:
 
 sub is_container {
 	my $self = shift;
-	$self->object_type =~ /d/;
+	return scalar $self->object_type =~ /d/;
 }
 
 =back

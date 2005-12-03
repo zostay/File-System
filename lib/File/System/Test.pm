@@ -3,7 +3,7 @@ package File::System::Test;
 use strict;
 use warnings;
 
-our $VERSION = '1.04';
+our $VERSION = '1.16';
 
 require Exporter;
 use File::Basename ();
@@ -124,46 +124,43 @@ sub is_root_sane {
 
 	my $root = $obj->root;
 	_check($obj->path eq $root->path, $name,
-		"root object path '",$obj->path,"' does not match ->root path '",
-		$root->path,"'") || return;
+		"root object path [$obj] does not match ->root path [$root]") || return;
 
 	_check($obj->path eq '/', $name, 
-		'root object path is \'',$obj->path,'\' instead of the desired \'/\'') || return;
+		"root object path is [$obj] instead of the desired [/]") || return;
 
 	_check($obj->path eq "$obj", $name,
-		"root object stringify was '$obj' instead of '",$obj->path,"'") || return;
+		"root object stringify was [$obj] instead of [",$obj->path,"]") || return;
 
 	_check($obj->basename eq '/', $name,
-		"root object basename was '",$obj->basename,"' instead of '/'") || return;
+		"root object basename was [",$obj->basename,"] instead of [/]") || return;
 
 	_check($obj->dirname eq '/', $name,
-		"root object dirname was '",$obj->dirname,"' instead of '/'") || return;
+		"root object dirname was [",$obj->dirname,"] instead of [/]") || return;
 
-	_check($obj->is_root, $name, 'root object is not reporting is_root') || return;
+	_check($obj->is_root, $name, "root object [$obj] is not reporting is_root") || return;
 
 	my $parent = $obj->parent;
 	_check($obj->path eq $parent->path, $name,
-		"root object path is '",$obj->path,"' but parent is '",
-		$parent->path,"'") || return;
+		"root object path is [$obj] but parent is [$parent]") || return;
 
 	_check(grep(/^basename$/, $obj->properties), $name,
-		"root object properties missing basename") || return;
+		"root object [$obj] properties missing basename") || return;
 
 	_check(grep(/^dirname$/, $obj->properties), $name,
-		"root object properties missing dirname") || return;
+		"root object [$obj] properties missing dirname") || return;
 
 	_check(grep(/^path$/, $obj->properties), $name,
-		"root object properties missing path") || return;
+		"root object [$obj] properties missing path") || return;
 
-	_check($obj->is_container, $name, 'root object is not a container') || return;
+	_check($obj->is_container, $name, "root object [$obj] is not a container") || return;
 
 	for my $path ('', '.', '..', '/') {
-		_check($obj->exists(''), $name, "root cannot file path '$path'") || return;
+		_check($obj->exists($path), $name, "root [$obj] cannot access file path [$path]") || return;
 
 		my $lookup = $root->lookup($path);
 		_check($obj->path eq $lookup->path, $name,
-			"root object path '",$obj->path,
-			"' does not match ->lookup($path) path '",$lookup->path,"'") || return;
+			"root object path [$obj] does not match ->lookup($path) path [$lookup]") || return;
 	}
 
 	$test->ok(1, $name);
@@ -218,36 +215,34 @@ sub is_object_sane {
 	_check(defined $obj, 'object does not exist') || return;
 
 	_check($obj->path eq "$obj", $name,
-		"object stringify was '$obj' instead of '",$obj->path,"'") || return;
+		"object stringify was [$obj] instead of [",$obj->path,"]") || return;
 
 	my $lookup = $obj->lookup($obj->path);
 	_check($obj->path eq $lookup->path, $name,
-		"object lookup('",$obj->path,"') results in '",
-		$lookup->path,"' instead of expected '",$obj->path,"'") || return;
+		"object lookup($obj) results in [$lookup] instead of expected [$obj]") || return;
 
-	_check($obj->basename eq File::Basename::basename($obj->path), $name,
-		"object basename was '",$obj->basename,"' instead of '",
-		File::Basename::basename($obj->path),"'") || return;
+	_check($obj->basename eq $obj->basename_of_path($obj->path), $name,
+		"object [$obj] basename was [",$obj->basename,"] instead of [",
+		$obj->basename_of_path($obj->path),"]") || return;
 
-	_check($obj->dirname eq File::Basename::dirname($obj->path), $name,
-		"object dirname was '",$obj->dirname,"' instead of '",
-		File::Basename::dirname($obj->path),"'") || return;
+	_check($obj->dirname eq $obj->dirname_of_path($obj->path), $name,
+		"object [$obj] dirname was [",$obj->dirname,"] instead of [",
+		$obj->dirname_of_path($obj->path),"]") || return;
 
-	_check(!$obj->is_root, $name, 'object is incorrectly reporting is_root') || return;
+	_check(!$obj->is_root, $name, "object [$obj] is incorrectly reporting is_root") || return;
 
 	my $parent = $obj->parent;
 	_check($obj->dirname eq $parent->path, $name,
-		"object dirname is '",$obj->dirname,"' but parent path is '",
-		$parent->path,"'") || return;
+		"object [$obj] dirname is [",$obj->dirname,"] but parent path is [$parent]") || return;
 
 	_check(grep(/^basename$/, $obj->properties), $name,
-		"object properties missing basename") || return;
+		"object [$obj] properties missing basename") || return;
 
 	_check(grep(/^dirname$/, $obj->properties), $name,
-		"object properties missing dirname") || return;
+		"object [$obj] properties missing dirname") || return;
 
 	_check(grep(/^path$/, $obj->properties), $name,
-		"object properties missing path") || return;
+		"object [$obj] properties missing path") || return;
 	
 	$test->ok(1, $name);
 }
@@ -298,41 +293,45 @@ sub is_container_sane {
 	my $obj  = shift;
 	my $name = shift;
 
-	_check($obj->is_container, $name, 'is_container does not return true') || return;
+	_check($obj->is_container, $name, "is_container [$obj] does not return true") || return;
 
 	_check($obj->can("has_children"), $name, 
-		"container does not have a 'has_children' method.") || return;
+		"container [$obj] does not have a 'has_children' method.") || return;
 
 	_check($obj->can("children_paths"), $name,
-		"container does not have a 'children_paths' method.") || return;
+		"container [$obj] does not have a 'children_paths' method.") || return;
 
 	_check($obj->can('children'), $name,
-		"container does not have a 'children' method.") || return;
+		"container [$obj] does not have a 'children' method.") || return;
 
 	_check($obj->can('child'), $name,
-		"container does not have a 'child' method.") || return;
+		"container [$obj] does not have a 'child' method.") || return;
 
 	my @children_paths = $obj->children_paths;
 	my @children       = $obj->children;
 	
 	_check(grep(/^\.$/, @children_paths), $name,
-		"container does not contain a '.' child.") || return;
+		"container [$obj] does not contain a '.' child.") || return;
 
 	_check(grep(/^\.\.$/, @children_paths), $name,
-		"container does not contain a '..' child.") || return;
+		"container [$obj] does not contain a '..' child.") || return;
 
 	if ($obj->has_children) {
 		_check(grep(!/^\.\.?$/, @children_paths), $name,
-			"container says it has children but children_paths returns none") || return;
+			"container [$obj] says it has children but children_paths returns none") || return;
 
 		_check(scalar(@children) > 0, $name,
-			"container says it has children but children returns none") || return;
+			"container [$obj] says it has children but children returns none") || return;
 
 		for my $path (@children_paths) {
 			my $lookup = $obj->lookup($path);
 			my $child  = $obj->child($path);
-			_check($lookup->path eq $child->path, $name,
-				"container doesn't find the same object via child() as it does for lookup() of $path") || return;
+
+            my $lookup_path = eval { $lookup->path } || '<undef>';
+            my $child_path  = eval { $child->path }  || '<undef>';
+
+			_check($lookup_path eq $child_path, $name,
+				"container [$obj] doesn't find the same object via child() [$child_path] as it does for lookup() [$lookup_path] of $path") || return;
 		}
 	} else {
 		_check(!grep(!/^\.\.?$/, @children_paths), $name,
@@ -363,7 +362,7 @@ sub is_content_sane {
 	my $obj  = shift;
 	my $name = shift;
 
-	_check($obj->has_content, $name, "has_content does not return true") || return;
+	_check($obj->has_content, $name, "has_content [$obj] does not return true") || return;
 
 	$test->ok(1, $name);
 }
@@ -410,12 +409,12 @@ sub is_content_writable {
 	my $obj  = shift;
 	my $name = shift;
 
-	_check($obj->is_readable, $name, "is_readable returns false") || return;
+	_check($obj->is_readable, $name, "is_readable [$obj] returns false") || return;
 
-	_check($obj->is_writable, $name, "is_writable returns false") || return;
+	_check($obj->is_writable, $name, "is_writable [$obj] returns false") || return;
 
 	my $fh = $obj->open("w");
-	_check(defined $fh, $name, "open('w') returns undef") || return;
+	_check(defined $fh, $name, "open('w') [$obj] returns undef") || return;
 
 	my @expected = (
 		"Hello World\n",
@@ -426,49 +425,49 @@ sub is_content_writable {
 	);
 
 	for my $line (@expected) {
-		_check(print($fh $line), $name, "print failed on file handle") || return;
+		_check(print($fh $line), $name, "print [$obj] failed on file handle") || return;
 	}
 
-	_check(close($fh), $name, "failed to close file handle") || return;
+	_check(close($fh), $name, "[$obj] failed to close file handle") || return;
 
 	my $content = $obj->content;
 	_check($content eq join('', @expected), $name,
-		"content read from file '$content' doesn't match expected") || return;
+		"[$obj] content read from file '$content' doesn't match expected") || return;
 
 	my @content = $obj->content;
 	for (my $n = 0; $n < @content; ++$n) {
 		_check($content[$n] eq $expected[$n], $name,
-			"content read from line $n of file, '$content[$n]', doesn't match expected") || return;
+			"[$obj] content read from line $n of file, '$content[$n]', doesn't match expected") || return;
 	}
 
 	if ($obj->is_appendable) {
 		my $fh = $obj->open("a");
-		_check(defined $fh, $name, "open('a') returns undef") || return;
+		_check(defined $fh, $name, "open('a') [$obj] returns undef") || return;
 
-		_check(print($fh "quux\n"), $name, "print failed on appendable file handle") || return;
+		_check(print($fh "quux\n"), $name, "print [$obj] failed on appendable file handle") || return;
 
-		_check(close($fh), $name, "failed to close appendable file handle") || return;
+		_check(close($fh), $name, "[$obj] failed to close appendable file handle") || return;
 
 		push @expected, "quux\n";
 		my $content = $obj->content;
 		_check($content eq join('', @expected), $name,
-			"content read from appended file '$content' doesn't match expected") || return;
+			"[$obj] content read from appended file '$content' doesn't match expected") || return;
 	}
 
 	if ($obj->is_seekable) {
 		my $fh = $obj->open("r+");
-		_check(defined $fh, $name, "open('w') returns undef") || return;
+		_check(defined $fh, $name, "open('w') [$obj] returns undef") || return;
 
-		_check(seek($fh, 16, 0), $name, "seek returned a failure") || return;
+		_check(seek($fh, 16, 0), $name, "seek [$obj] returned a failure") || return;
 
-		_check(print($fh "huh\n"), $name, "print failed on seeked file handle") || return;
+		_check(print($fh "huh\n"), $name, "print [$obj] failed on seeked file handle") || return;
 
-		_check(close($fh), $name, "failed to close seeked file handle") || return;
+		_check(close($fh), $name, "[$obj] failed to close seeked file handle") || return;
 
 		splice @expected, 2, 1, "huh\n";
 		my $content = $obj->content;
 		_check($content eq join('', @expected), $name,
-			"content read from seeked file '$content' doesn't match expected") || return;
+			"[$obj] content read from seeked file '$content' doesn't match expected") || return;
 	}
 
 	$test->ok(1, $name);

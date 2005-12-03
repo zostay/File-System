@@ -8,7 +8,7 @@ use base 'File::System::Object';
 use Carp;
 use File::System;
 
-our $VERSION = '1.06';
+our $VERSION = '1.16';
 
 =head1 NAME
 
@@ -131,7 +131,7 @@ sub exists {
 
 sub lookup {
 	my $self = shift;
-	my $path = shift;
+	my $path = $self->normalize_path(shift);
 
 	for my $layer (@{ $self->{layers} }) {
 		my $res = $layer->lookup($path);
@@ -355,7 +355,13 @@ sub ).$name.q( {
 sub has_children {
 	my $self = shift;
 
-	for my $layer (@{ $self->{layers} }) {
+    my $path = $self->path;
+    my @layers
+        = grep    { defined }
+          map     { $_->lookup($path) }
+          reverse @{ $self->{layers} };
+
+	for my $layer (@layers) {
 		my $res = $layer->has_children;
 		return $res if $res;
 	}
@@ -366,8 +372,15 @@ sub has_children {
 sub children_paths {
 	my $self = shift;
 
+    my $path = $self->path;
+
 	my %results;
-	for my $layer (reverse @{ $self->{layers} }) {
+    my @layers
+        = grep    { defined }
+          map     { $_->lookup($path) }
+          reverse @{ $self->{layers} };
+
+	for my $layer (@layers) {
 		my @paths = $layer->children_paths;
 		for my $path (@paths) {
 			$results{$path}++;
@@ -380,8 +393,15 @@ sub children_paths {
 sub children {
 	my $self = shift;
 
+    my $path = $self->path;
+
 	my %results;
-	for my $layer (reverse @{ $self->{layers} }) {
+    my @layers
+        = grep    { defined }
+          map     { $_->lookup($path) }
+          reverse @{ $self->{layers} };
+
+	for my $layer (@layers) {
 		my @children = $layer->children;
 		for my $child (@children) {
 			$results{$child->path} = $child;
@@ -394,10 +414,11 @@ sub children {
 
 sub child {
 	my $self = shift;
+    my $path = $self->normalize_path(shift);
 
 	my $child;
 	for my $layer (@{ $self->{layers} }) {
-		$child = $layer->child(@_);
+		$child = $layer->lookup($path);
 		last if defined $child;
 	}
 

@@ -1,10 +1,12 @@
+# vim: set ft=perl :
+
 use strict;
 use warnings;
 
 use File::Basename;
 use File::Path;
 use File::System::Test;
-use Test::More tests => 312;
+use Test::More tests => 339;
 
 BEGIN { use_ok('File::System') }
 
@@ -28,11 +30,11 @@ sub uniq {
 }
 
 my @dirs1 = qw(
-	.bar .bar/.baz .file2 bar file2
+	.bar .bar/.baz .file2 bar file2 quux
 );
 
 my @dirs2 = qw(
-	.bar .bar/.baz .bar/.baz/.qux bar bar/baz bar/baz/qux file2
+	.bar .bar/.baz .bar/.baz/.qux bar bar/baz bar/baz/qux bar/baz/quux file2
 );
 
 my @dirs = uniq(@dirs1, @dirs2);
@@ -89,6 +91,12 @@ for my $path (@dirs, @files) {
 # Check to make sure child does essentially the same
 ok(defined $root->child('foo'));
 ok(!defined $root->child('foo2'));
+
+## Checking child on a deeper scale:
+my $child = $root;
+is(($child = $child->child('bar'))->path, '/bar');
+is(($child = $child->child('baz'))->path, '/bar/baz');
+is(($child = $child->child('quux'))->path, '/bar/baz/quux');
 
 for my $path (@dirs, @files) {
  	my $obj = $root->lookup($path);

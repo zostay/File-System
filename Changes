@@ -1,3 +1,20 @@
+1.16    2005-12-03 16:34    Andrew Sterling Hanenkamp
+
+    * t/07_layered.t: Added additional tests to reveal a bug that causes
+      the root-level of the layered file systems to be treated as in the current
+      directory during calls to children(), children_paths(), and
+      has_children().
+    * lib/File/System/Layered.pm: Paths passed to lookup() are normalized as
+      they should be.
+    * lib/File/System/Layered.pm: Updated has_children(), children_paths(),
+      children(), and child() so that they will treat layers besides the current
+      properly.
+    * lib/File/System/Object.pm: Updated has_content() and is_container() to
+      make sure they always return a scalar.
+    * lib/File/System/Test.pm: Improved the diagnostics messages of most
+      methods in File::System::Test so that it is more obvious which part of a
+      test failed.
+
 1.15	2005-11-22 09:58	Andrew Sterling Hanenkamp
 
 	* lib/File/System/Real.pm: Added more croaking when open() and opendir()
